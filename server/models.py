@@ -41,10 +41,18 @@ class User(db.Model, SerializerMixin):
     
     @hybrid_property
     def authenticate(self, val):
-        return bcrypt.check_password_hash(self._password_hash, bcrypt.val.encode("utf-8"));
+        return bcrypt.check_password_hash(self._password_hash, val.encode("utf-8"));
 
     #@validates("colname")
     #def isvalid(self, key, val): return val;
+
+    def getEpisodeIds(self):
+        return [ep.id for ep in self.episodes];
+
+    def __repr__(self):
+        mystr = f"<User id={self.id}, name={self.name}, ";
+        mystr += f"access-level={self.access_level}, episode_ids={self.getEpisodeIds()}";
+        return mystr;
 
 class Show(db.Model, SerializerMixin):
     __tablename__ = "shows";
@@ -65,6 +73,15 @@ class Show(db.Model, SerializerMixin):
     
     #@validates("colname")
     #def isvalid(self, key, val): return val;
+
+    def getEpisodeIds(self):
+        return [ep.id for ep in self.episodes];
+
+    def __repr__(self):
+        mystr = f"<Show id={self.id}, owner-id={self.owner_id}, ";
+        mystr += f"name={self.name}, description={self.description}, ";
+        mystr += f"owner={self.owner}, episode_ids={self.getEpisodeIds()}";
+        return mystr;
 
 class Episode(db.Model, SerializerMixin):
     __tablename__ = "episodes";
@@ -88,6 +105,16 @@ class Episode(db.Model, SerializerMixin):
     #@validates("colname")
     #def isvalid(self, key, val): return val;
 
+    def getUserIds(self):
+        return [usr.id for usr in self.users];
+
+    def __repr__(self):
+        mystr = f"<Episode id={self.id}, show-id={self.show_id}, ";
+        mystr += f"season_number={self.season_number}, episode_number={self.episode_number}, ";
+        mystr += f"name={self.name}, description={self.description}, ";
+        mystr += f"userids={self.getUserIds()}";
+        return mystr;
+
 class Toy(db.Model, SerializerMixin):
     __tablename__ = "toys";
 
@@ -108,6 +135,11 @@ class Toy(db.Model, SerializerMixin):
     #@validates("colname")
     #def isvalid(self, key, val): return val;
 
+    def __repr__(self):
+        mystr = f"<Toy id={self.id}, show-id={self.show_id}, price={self.price}, ";
+        mystr += f"name={self.name}, description={self.description}>";
+        return mystr;
+
 
 class UserToy(db.Model, SerializerMixin):
     __tablename__ = "user_toys";
@@ -126,3 +158,8 @@ class UserToy(db.Model, SerializerMixin):
 
     #@validates("colname")
     #def isvalid(self, key, val): return val;
+
+    def __repr__(self):
+        mystr = f"<UserToy user-id={self.user_id}, toy-id={self.toy_id}, ";
+        mystr += f"quantity={self.quantity}>";
+        return mystr;
