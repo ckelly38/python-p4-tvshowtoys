@@ -8,7 +8,7 @@ from faker import Faker
 
 # Local imports
 from app import app
-from models import db, User, Show, Episode, Toy, UserToy
+from models import db, User, Show, Episode, Toy, UserToy, UserEpisodes
 
 if __name__ == '__main__':
     fake = Faker()
@@ -18,7 +18,7 @@ if __name__ == '__main__':
         print("BEGIN CLEARING DATABASE OF EXISTING DATA:");
         clrdb = True;
         if (clrdb):
-            mycls = [User, Show, Episode, Toy, UserToy];
+            mycls = [User, Show, Episode, Toy, UserToy, UserEpisodes];
             for mcls in mycls:
                 mcls.query.delete();
         print("DATABASE CLEARED BEGIN CREATING DUMMY DATA!");
@@ -32,7 +32,7 @@ if __name__ == '__main__':
         print(kdone);
         db.session.add(kdone);
         db.session.commit();
-        kdtwo = User(id=2, name="MewTwo", access_level=1);
+        kdtwo = User(id=3, name="MewTwo", access_level=1);
         kdtwo.password_hash = "dummyfantwo";
         print(kdtwo);
         db.session.add(kdtwo);
@@ -63,8 +63,9 @@ if __name__ == '__main__':
         print(eppmone);
         db.session.add(eppmone);
         db.session.commit();
-        print("DONE CREATING DUMMY EPPISODES!");
+        print("DONE CREATING DUMMY EPISODES!");
         pikachu = Toy(name="Pikachu",
+                      price=3.25,
                       description="Stuffed animal that looks, talks, and vibrates like " +
                       "Pickachu when you push the buttons in its paws! Cannot actually zap " +
                       "you!",
@@ -73,9 +74,20 @@ if __name__ == '__main__':
         db.session.add(pikachu);
         db.session.commit();
         print("DONE CREATING DUMMY TOYS!");
-        uty = UserToy(toy_id=pikachu.id, toy=pikachu, user=kdone, quantity=3);
+        uty = UserToy(toy=pikachu, user=kdone, quantity=3);
         print(uty);
         db.session.add(uty);
         db.session.commit();
         print("DONE LETTING A KID DO SHOPPING ON ITS OWN!");
+        for sw in Show.query.all():
+            swueps = [UserEpisodes(user=sw.owner, episode=ep) for ep in sw.episodes];
+            for swep in swueps:
+                db.session.add(swep);
+                db.session.commit();
+        print("DONE WITH EACH SHOW'S OWNERS WATCHING THE EPISODES!");
+        uep = UserEpisodes(user=kdone, episode=eppmone);
+        db.session.add(uep);
+        db.session.commit();
+        print("DONE LETTING KIDS WATCH SOME OR ALL OF THE EPISODES!");
+        print("DONE SEEDING THE DATABASE!");
 
