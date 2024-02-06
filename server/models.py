@@ -6,10 +6,10 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from config import db, bcrypt, metadata
 
 user_episodes = db.Table(
-    "user_episodes",
-    metadata,
-    db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
-    db.Column("episode_id", db.Integer, db.ForeignKey("episodes.id"), primary_key=True)
+   "user_episodes",
+   metadata,
+   db.Column("user_id", db.Integer, db.ForeignKey("users.id"), primary_key=True),
+   db.Column("episode_id", db.Integer, db.ForeignKey("episodes.id"), primary_key=True)
 );
 
 # Models go here!
@@ -28,14 +28,14 @@ class User(db.Model, SerializerMixin):
     #when access_level is 2 (they can create or delete their own toys)
     
     #other stuff after that
-    episodes = db.relationship("Episode", secondary=user_episodes, back_populates="users");
+    #episodes = db.relationship("Episode", secondary=user_episodes, back_populates="users");
 
     @hybrid_property
     def password_hash(self):
         raise AttributeError("not allowed to view the password hashes from an outside class!");
 
     @password_hash.setter
-    def setPassword(self, val):
+    def password_hash(self, val):
         phsh = bcrypt.generate_password_hash(val.encode("utf-8"));
         self._password_hash = phsh.decode("utf-8");
     
@@ -46,12 +46,13 @@ class User(db.Model, SerializerMixin):
     #@validates("colname")
     #def isvalid(self, key, val): return val;
 
-    def getEpisodeIds(self):
-        return [ep.id for ep in self.episodes];
+    #def getEpisodeIds(self):
+    #    return [ep.id for ep in self.episodes];
 
     def __repr__(self):
         mystr = f"<User id={self.id}, name={self.name}, ";
-        mystr += f"access-level={self.access_level}, episode_ids={self.getEpisodeIds()}";
+        mystr += f"access-level={self.access_level}";
+        #mystr += f", episode_ids={self.getEpisodeIds()}";
         return mystr;
 
 class Show(db.Model, SerializerMixin):
@@ -68,19 +69,19 @@ class Show(db.Model, SerializerMixin):
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), default=0);
 
     #other stuff after that
-    episodes = db.relationship("Episode");
-    owner = db.relationship("User");
+    #episodes = db.relationship("Episode");
+    #owner = db.relationship("User");
     
     #@validates("colname")
     #def isvalid(self, key, val): return val;
 
-    def getEpisodeIds(self):
-        return [ep.id for ep in self.episodes];
+    #def getEpisodeIds(self):
+    #    return [ep.id for ep in self.episodes];
 
     def __repr__(self):
         mystr = f"<Show id={self.id}, owner-id={self.owner_id}, ";
         mystr += f"name={self.name}, description={self.description}, ";
-        mystr += f"owner={self.owner}, episode_ids={self.getEpisodeIds()}";
+        #mystr += f"owner={self.owner}, episode_ids={self.getEpisodeIds()}";
         return mystr;
 
 class Episode(db.Model, SerializerMixin):
@@ -99,20 +100,20 @@ class Episode(db.Model, SerializerMixin):
     show_id = db.Column(db.Integer, db.ForeignKey("shows.id"));
 
     #other stuff after that
-    users = db.relationship("User", secondary=user_episodes, back_populates="episodes");
-    show = db.relationship("Show");
+    #users = db.relationship("User", secondary=user_episodes, back_populates="episodes");
+    #show = db.relationship("Show");
     
     #@validates("colname")
     #def isvalid(self, key, val): return val;
 
-    def getUserIds(self):
-        return [usr.id for usr in self.users];
+    #def getUserIds(self):
+    #    return [usr.id for usr in self.users];
 
     def __repr__(self):
         mystr = f"<Episode id={self.id}, show-id={self.show_id}, ";
         mystr += f"season_number={self.season_number}, episode_number={self.episode_number}, ";
         mystr += f"name={self.name}, description={self.description}, ";
-        mystr += f"userids={self.getUserIds()}";
+        #mystr += f"userids={self.getUserIds()}";
         return mystr;
 
 class Toy(db.Model, SerializerMixin):
@@ -130,7 +131,7 @@ class Toy(db.Model, SerializerMixin):
     show_id = db.Column(db.Integer, db.ForeignKey("shows.id"));
     
     #other stuff after that
-    show = db.relationship("Show");
+    #show = db.relationship("Show");
 
     #@validates("colname")
     #def isvalid(self, key, val): return val;
@@ -148,13 +149,13 @@ class UserToy(db.Model, SerializerMixin):
     #__tableargs__ = (db.checkConstraint("colname operation value"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
-    user_id = db.Column(db.Integer, primary_key=True);
-    toy_id = db.Column(db.Integer, primary_key=True);
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True);
+    toy_id = db.Column(db.Integer, db.ForeignKey("toys.id"), primary_key=True);
     quantity = db.Column(db.Integer, default=0);
 
     #other stuff after that
-    user = db.relationship("User");
-    toy = db.relationship("Toy");
+    #user = db.relationship("User");
+    #toy = db.relationship("Toy");
 
     #@validates("colname")
     #def isvalid(self, key, val): return val;
