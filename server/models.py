@@ -15,6 +15,9 @@ class UserEpisodes(db.Model, SerializerMixin):
     user = db.relationship("User");
     episode = db.relationship("Episode");
 
+    def __repr__(self):
+        return f"<UserEpisodes user_id={self.user_id}, episode_id={self.episode_id}>";
+
 
 # Models go here!
 class User(db.Model, SerializerMixin):

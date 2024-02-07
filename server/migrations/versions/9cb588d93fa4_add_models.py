@@ -1,8 +1,8 @@
-"""add models to env
+"""add models
 
-Revision ID: afbedb3874b3
-Revises: dddc2fda68cb
-Create Date: 2024-02-06 00:42:44.720810
+Revision ID: 9cb588d93fa4
+Revises: c33057341b76
+Create Date: 2024-02-06 20:59:02.319012
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'afbedb3874b3'
-down_revision = 'dddc2fda68cb'
+revision = '9cb588d93fa4'
+down_revision = 'c33057341b76'
 branch_labels = None
 depends_on = None
 

@@ -10,6 +10,12 @@ from faker import Faker
 from app import app
 from models import db, User, Show, Episode, Toy, UserToy, UserEpisodes
 
+def bulkPrintAndCommitToDB(mlst, printit=True):
+    for mobj in mlst:
+        if (printit): print(mobj);
+        db.session.add(mobj);
+        db.session.commit();
+
 if __name__ == '__main__':
     fake = Faker()
     with app.app_context():
@@ -74,20 +80,34 @@ if __name__ == '__main__':
         db.session.add(pikachu);
         db.session.commit();
         print("DONE CREATING DUMMY TOYS!");
+        #the owner of the show, owns or has all of the toys
+        ots = [UserToy(toy=t, user=t.show.owner, quantity=1) for t in Toy.query.all()];
+        for oty in ots:
+            #print("BEFORE DB COMMIT:");
+            #print(oty);
+            #print(oty.user);
+            db.session.add(oty);
+            db.session.commit();
+            #print("AFTER DB COMMIT:");
+            print(oty);
+        print("OWNER DONE HAVING TOYS!");
+        #kids also buy some toys
         uty = UserToy(toy=pikachu, user=kdone, quantity=3);
-        print(uty);
         db.session.add(uty);
         db.session.commit();
+        print(uty);
         print("DONE LETTING A KID DO SHOPPING ON ITS OWN!");
         for sw in Show.query.all():
             swueps = [UserEpisodes(user=sw.owner, episode=ep) for ep in sw.episodes];
-            for swep in swueps:
-                db.session.add(swep);
+            for swuep in swueps:
+                db.session.add(swuep);
                 db.session.commit();
+                print(swuep);
         print("DONE WITH EACH SHOW'S OWNERS WATCHING THE EPISODES!");
         uep = UserEpisodes(user=kdone, episode=eppmone);
         db.session.add(uep);
         db.session.commit();
+        print(uep);
         print("DONE LETTING KIDS WATCH SOME OR ALL OF THE EPISODES!");
         print("DONE SEEDING THE DATABASE!");
 
