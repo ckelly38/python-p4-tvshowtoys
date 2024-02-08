@@ -111,3 +111,14 @@ if __name__ == '__main__':
         print("DONE LETTING KIDS WATCH SOME OR ALL OF THE EPISODES!");
         print("DONE SEEDING THE DATABASE!");
 
+        ocn = User(id=4, name="CN", access_level=2);
+        ocn.password_hash = "cnrocks";
+        print(ocn);
+        unitstfailed = True;
+        try:
+            db.session.add(ocn);
+            db.session.commit();
+        except:
+            print("TEST PAST!");
+            unitstfailed = False;
+        if (unitstfailed): raise Exception("unique constraint test failed!");

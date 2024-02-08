@@ -76,19 +76,61 @@ class GenerateSerializableRulesClass:
 
 genlists = GenerateSerializableRulesClass();
 
+class MyValidator:
+    disablevalidator = False;
+
+    def stringHasAtMinimumXChars(self, mstr, x):
+        if (x == None or type(x) != int): raise ValueError("x must be a number");
+        elif (x < 0): raise ValueError("the minimum allowed for x is zero!");
+        if (self.disablevalidator): return True;
+        if (x < 1): return True;
+        else:
+            if (mstr == None): return False;
+            else: return (not(len(mstr) < x));
+
+    #no max is anything less than 0
+    def stringHasAtMaximumXChars(self, mstr, x):
+        if (x == None or type(x) != int): raise ValueError("x must be a number");
+        elif (x < 0): return True;
+        if (self.disablevalidator): return True;
+        if (x < 1):
+            if (mstr == None or len(mstr) < 1): return True;
+            else: return False;
+        else:
+            if (mstr == None): return False;
+            else: return (not(x < len(mstr)));
+
+    def stringHasAtMinimumXAndAtMaximumYChars(self, mstr, x, y):
+        return (self.stringHasAtMinimumXChars(mstr, x) and
+            self.stringHasAtMaximumXChars(mstr, y));
+
+    def isstringnotblank(self, val, typestr):
+        vlen = self.stringHasAtMinimumXChars(val, 1);
+        if (vlen): return val;
+        else: raise ValueError(f"{typestr} must not be blank!");
+
+    def isnamevalid(self, val, typestr, cls):
+        self.isstringnotblank(val, typestr);
+        unms = [usr.name for usr in cls.query.all()];
+        if (val in unms): raise ValueError(f"{typestr} must be unique!");
+        else: return val;
+
+mv = MyValidator();
+
 # Models go here!
 class User(db.Model, SerializerMixin):
     __tablename__ = "users";
 
     #constraints go inside the tableargs
-    #__tableargs__ = (db.checkConstraint("colname operation value"));
+    __tableargs__ = (db.checkConstraint("access_level == 1 OR access_level == 2"),
+                     db.checkConstraint("length(name) >= 1"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
     id = db.Column(db.Integer, primary_key=True);
-    name = db.Column(db.String, nullable=False);
+    name = db.Column(db.String, unique=True, nullable=False);
     _password_hash = db.Column(db.String);
     access_level = db.Column(db.Integer, default=1);
-    #every use has edit access (they can change their own toys)
+    #every user has edit access (they can change their own toys)
     #when access_level is 2 (they can create or delete their own toys)
     
     #safeserializelist = ["id", "name", "access_level"];
@@ -111,8 +153,10 @@ class User(db.Model, SerializerMixin):
 
 
     #other stuff after that
-    episodes = db.relationship("Episode", secondary="user_episodes", back_populates="users");
-    toys = db.relationship("Toy", secondary="user_toys", back_populates="users");
+    episodes = db.relationship("Episode", secondary="user_episodes", back_populates="users",
+                               cascade="all, delete-orphan");
+    toys = db.relationship("Toy", secondary="user_toys", back_populates="users",
+                           cascade="all, delete-orphan");
     user_toys = db.relationship("UserToy", back_populates="user",
                                 cascade="all, delete-orphan");
 
@@ -129,8 +173,16 @@ class User(db.Model, SerializerMixin):
     def authenticate(self, val):
         return bcrypt.check_password_hash(self._password_hash, val.encode("utf-8"));
 
-    #@validates("colname")
-    #def isvalid(self, key, val): return val;
+    #validation code
+
+    @validates("name")
+    def isnamevalid(self, key, val):
+        return mv.isnamevalid(val, "username", User);
+
+    @validates("access_level")
+    def isaccesslevelvalid(self, key, val):
+        if (val == 1 or val == 2): return val;
+        else: raise ValueError("invalid value found and used here for access_level!");
 
     def getEpisodeIds(self):
         return [ep.id for ep in self.episodes];
@@ -145,11 +197,12 @@ class Show(db.Model, SerializerMixin):
     __tablename__ = "shows";
 
     #constraints go inside the tableargs
-    #__tableargs__ = (db.checkConstraint("colname operation value"));
+    __tableargs__ = (db.checkConstraint("length(description) >= 1"),
+                     db.checkConstraint("length(name) >= 1"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
     id = db.Column(db.Integer, primary_key=True);
-    name = db.Column(db.String, nullable=False);
+    name = db.Column(db.String, unique=True, nullable=False);
     description = db.Column(db.String, nullable=False);
 
     owner_id = db.Column(db.Integer, db.ForeignKey("users.id"), default=0);
@@ -171,12 +224,19 @@ class Show(db.Model, SerializerMixin):
     serialize_only = tuple(safeserializelist);
 
     #other stuff after that
-    episodes = db.relationship("Episode", back_populates="show");
-    owner = db.relationship("User");
-    toys = db.relationship("Toy", back_populates="show");
+    episodes = db.relationship("Episode", back_populates="show", cascade="all, delete-orphan");
+    owner = db.relationship("User", cascade="all, delete-orphan");
+    toys = db.relationship("Toy", back_populates="show", cascade="all, delete-orphan");
 
-    #@validates("colname")
-    #def isvalid(self, key, val): return val;
+    #validation code
+
+    @validates("name")
+    def isnamevalid(self, key, val):
+        return mv.isnamevalid(val, "show name", Show);
+    
+    @validates("description")
+    def isdescriptionvalid(self, key, val):
+        return mv.isstringnotblank(val, "show description");
 
     def getEpisodeIds(self):
         return [ep.id for ep in self.episodes];
@@ -191,7 +251,10 @@ class Episode(db.Model, SerializerMixin):
     __tablename__ = "episodes";
 
     #constraints go inside the tableargs
-    #__tableargs__ = (db.checkConstraint("colname operation value"));
+    __tableargs__ = (db.checkConstraint("length(description) >= 1"),
+                     db.checkConstraint("length(name) >= 1"),
+                     db.checkConstraint("length(season_number) >= 1"),
+                     db.checkConstraint("length(episode_number) >= 1"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
     id = db.Column(db.Integer, primary_key=True);
@@ -217,11 +280,19 @@ class Episode(db.Model, SerializerMixin):
     serialize_only = tuple(safeserializelist);
 
     #other stuff after that
-    users = db.relationship("User", secondary="user_episodes", back_populates="episodes");
-    show = db.relationship("Show", back_populates="episodes");
+    users = db.relationship("User", secondary="user_episodes", back_populates="episodes",
+                            cascade="all, delete-orphan");
+    show = db.relationship("Show", back_populates="episodes", cascade="all, delete-orphan");
 
-    #@validates("colname")
-    #def isvalid(self, key, val): return val;
+    #validation code
+    
+    @validates("name")
+    def isnamevalid(self, key, val):
+        return mv.isstringnotblank(val, "episode name");
+
+    @validates("description")
+    def isdescriptionvalid(self, key, val):
+        return mv.isstringnotblank(val, "episode description");
 
     def getUserIds(self):
         return [usr.id for usr in self.users];
@@ -237,11 +308,13 @@ class Toy(db.Model, SerializerMixin):
     __tablename__ = "toys";
 
     #constraints go inside the tableargs
-    #__tableargs__ = (db.checkConstraint("colname operation value"));
+    __tableargs__ = (db.checkConstraint("length(description) >= 1"),
+                     db.checkConstraint("length(name) >= 1"),
+                     db.checkConstraint("price >= 0"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
     id = db.Column(db.Integer, primary_key=True);
-    price = db.Column(db.Float);
+    price = db.Column(db.Float, default=1);
     name = db.Column(db.String, nullable=False);
     description = db.Column(db.String, nullable=False);
     
@@ -262,12 +335,28 @@ class Toy(db.Model, SerializerMixin):
     serialize_only = tuple(safeserializelist);
 
     #other stuff after that
-    show = db.relationship("Show", back_populates="toys");
-    users = db.relationship("User", secondary="user_toys", back_populates="toys");
+    show = db.relationship("Show", back_populates="toys", cascade="all, delete-orphan");
+    users = db.relationship("User", secondary="user_toys", back_populates="toys",
+                            cascade="all, delete-orphan");
     user_toys = db.relationship("UserToy", back_populates="toy", cascade="all, delete-orphan");
 
-    #@validates("colname")
-    #def isvalid(self, key, val): return val;
+    #validation code
+    
+    @validates("name")
+    def isnamevalid(self, key, val):
+        return mv.isstringnotblank(val, "toy name");
+    
+    @validates("price")
+    def ispricevalid(self, key, val):
+        if (val == None or type(val) != float or type(val) != int):
+            raise ValueError("the value for the price must be a number!");
+        else:
+            if (val < 0): raise ValueError("the price cannot be negative!");
+            else: return val;
+
+    @validates("description")
+    def isdescriptionvalid(self, key, val):
+        return mv.isstringnotblank(val, "toy description");
 
     def __repr__(self):
         mystr = f"<Toy id={self.id}, show-id={self.show_id}, price={self.price}, ";
@@ -295,8 +384,8 @@ class UserEpisodes(db.Model, SerializerMixin):
                       "episode.show.name", "episode.show.description");
 
     #other stuff after that
-    user = db.relationship("User");
-    episode = db.relationship("Episode");
+    user = db.relationship("User", cascade="all, delete-orphan");
+    episode = db.relationship("Episode", cascade="all, delete-orphan");
 
     def __repr__(self):
         return f"<UserEpisodes user_id={self.user_id}, episode_id={self.episode_id}>";
@@ -305,7 +394,7 @@ class UserToy(db.Model, SerializerMixin):
     __tablename__ = "user_toys";
 
     #constraints go inside the tableargs
-    #__tableargs__ = (db.checkConstraint("colname operation value"));
+    __tableargs__ = (db.checkConstraint("quantity >= 0"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True);
@@ -327,11 +416,18 @@ class UserToy(db.Model, SerializerMixin):
     serialize_only = tuple(safeserializelist);
 
     #other stuff after that
-    user = db.relationship("User", back_populates="user_toys");
-    toy = db.relationship("Toy", back_populates="user_toys");
+    user = db.relationship("User", back_populates="user_toys", cascade="all, delete-orphan");
+    toy = db.relationship("Toy", back_populates="user_toys", cascade="all, delete-orphan");
 
-    #@validates("colname")
-    #def isvalid(self, key, val): return val;
+    #validation code
+    
+    @validates("quantity")
+    def isquantityvalid(self, key, val):
+        if (val == None or type(val) != int):
+            raise ValueError("the value for the quantity must be a number!");
+        else:
+            if (val < 0): raise ValueError("the quantity cannot be negative!");
+            else: return val;
 
     def __repr__(self):
         mystr = f"<UserToy user-id={self.user_id}, toy-id={self.toy_id}, ";
