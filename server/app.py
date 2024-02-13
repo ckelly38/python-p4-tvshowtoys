@@ -13,19 +13,19 @@ from models import User, Show, Episode, Toy, UserToy, UserEpisodes
 
 # Views go here!
 #anyone (not just users, not needed to be logged in) needs to know what:
-#shows, episodes, and toys we sell
-#anyone should be able to create an account for the site
-#a user needs to be able to login and logout
+#shows, episodes, and toys we sell (DONE)
+#anyone should be able to create an account for the site (DONE)
+#a user needs to be able to login and logout (DONE)
 #a user should be allowed to delete their account
 #a user should be allowed to change their password
 #a user should be allowed to change their username (maybe???)
-#a user should be allowed to purchase toys, and watch episodes from shows
-#a user should be allowed to list the toys, episodes, and shows they have watched
-#a user should be allowed to create or delete shows, episodes, and toys
-#(if they have that access level)
 #a user should be allowed to change their access level (upgrade or downgrade)
-#a user should be able to change their watch history
-#a user should be able to get rid of purchased toys (sell, donate, or throw them out)
+#a user should be allowed to purchase toys, and watch episodes from shows (DONE)
+#a user should be allowed to list the toys, episodes, and shows they have watched (DONE)
+#a user should be allowed to create or delete shows, episodes, and toys
+#(if they have that access level) (DONE)
+#a user should be able to change their watch history (DONE)
+#a user should be able to get rid of purchased toys (sell, donate, or throw them out) (DONE)
 
 class Commonalities:
     def getValidClassList(self):
@@ -47,8 +47,16 @@ class Commonalities:
             raise ValueError("the class must be one of the following: " +
                              f"{self.getValidClassList()}!");
 
-    def getAllOfTypeFromDB(self, cls):
-        if (self.isClsValid(cls)): return cls.query.all();
+    def getAllOfTypeFromDB(self, cls, retall=True, usrid=0):
+        if (retall == True or retall == False): pass;
+        else: raise ValueError("retall must be a booleanv value for the variable!");
+        if (self.isClsValid(cls)):
+            if (retall): return cls.query.all();
+            if (cls == UserToy or cls == UserEpisodes):
+                if (usrid == None or type(usrid) != int):
+                    raise ValueError("usrid must be a number!");
+                else: return cls.query.filter_by(user_id=usrid).all();
+            else: return cls.query.all();
         else:
             raise ValueError("the class must be one of the following: " +
                              f"{self.getValidClassList()}!");
@@ -73,23 +81,33 @@ class Commonalities:
             raise ValueError("numlisttype must be a number!");
         else: return self.getSerializedItem(type(item), item, numlisttype);
 
-    def getAllOfTypeAndSerializeThem(self, cls, numlisttype=3):
+    def getAllOfTypeAndSerializeThem(self, cls, numlisttype=3, retall=True, usrid=0):
         if (numlisttype == None or type(numlisttype) != int):
             raise ValueError("numlisttype must be a number!");
         return [self.getSerializedItem(cls, item, numlisttype)
-                for item in self.getAllOfTypeFromDB(cls)];
+                for item in self.getAllOfTypeFromDB(cls, retall, usrid)];
 
-    def getItemByID(self, id, cls):
-        if (id == None or cls == None):
-            raise ValueError("id and cls must not be null or None!");
+    def getItemByID(self, id, cls, usrid=0):
+        if (id == None or cls == None or usrid == None):
+            raise ValueError("id, usrid and cls must not be null or None!");
         elif (type(id) != int): raise ValueError("id must be an integer!");
-        elif (self.isClsValid(cls)): return cls.query.filter_by(id=id).first();
+        elif (type(usrid) != int): raise ValueError("usrid must be an integer!");
+        elif (self.isClsValid(cls)):
+            if (cls == UserToy or cls == UserEpisodes):
+                if (cls == UserToy):
+                    return cls.query.filter_by(user_id=usrid, toy_id=id).first();
+                elif (cls == UserEpisodes):
+                    return cls.query.filter_by(user_id=usrid, episode_id=id).first();
+                else:
+                    raise ValueError("the class was UserToy or UserEpisdes, but now it " +
+                                     "is not!");
+            else: return cls.query.filter_by(id=id).first();
         else:
             raise ValueError("the class must be one of the following: " +
                              f"{self.getValidClassList()}!");
 
-    def getItemByIDAndReturnResponse(self, id, cls, numlisttype=3):
-        item = self.getItemByID(id, cls);
+    def getItemByIDAndReturnResponse(self, id, cls, numlisttype=3, usrid=0):
+        item = self.getItemByID(id, cls, usrid);
         if (numlisttype == None or type(numlisttype) != int):
             raise ValueError("numlisttype must be a number!");
         if (item == None):
@@ -259,8 +277,8 @@ class Commonalities:
         if (item == None): return {"error": "404 error item must not be null or None"}, 404;
         else: return self.removeItemGivenItemFromDBAndReturnResponse(item.id, type(item), item);
 
-    def removeItemFromDBAndReturnResponse(self, id, cls):
-        item = self.getItemByID(id, cls);
+    def removeItemFromDBAndReturnResponse(self, id, cls, usrid=0):
+        item = self.getItemByID(id, cls, usrid);
         return self.removeItemGivenItemFromDBAndReturnResponse(id, cls, item);
 
     def postOrPatchAndReturnResponse(self, cls, rqst, msess, useadd, showid=0, id=0,
@@ -362,28 +380,38 @@ api.add_resource(Unsubscribe, "/unsubscribe");
 #a user is also allowed to add items to this list
 #a user is also allowed to remove items from this list
 
-class Users(Resource):
+class MyEpisodes(Resource):
     def get(self):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.getAllOfTypeAndSerializeThem(UserEpisodes, 3, False, usr.id);
 
     def post(self):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.addItemToDBAndReturnResponse(UserEpisodes, request, session, 0, 3);
 
-#api.add_resource(Class, "url");
+api.add_resource(MyEpisodes, "/my-watchlist");
+api.add_resource(MyEpisodes, "/my-episodes");
 
-class UsersByID(Resource):
+class MyEpisodesByID(Resource):
     def get(self, id):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.getItemByIDAndReturnResponse(id, UserToy, 3, usr.id);
 
     def patch(self, id):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.updateItemOnDBAndReturnResponse(id, UserToy, request, session, 0, 3);
 
     def delete(self, id):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.removeItemFromDBAndReturnResponse(id, UserToy, usr.id);
 
-#api.add_resource(Class, "url");
-
-#api.add_resource(Class, "/watchlist");
+api.add_resource(MyEpisodesByID, "/my-watchlist/<int:id>");
+api.add_resource(MyEpisodesByID, "/my-episodes/<int:id>");
 
 #what happens on my-toys?
 #all users must be logged in to view this
@@ -394,25 +422,32 @@ class UsersByID(Resource):
 
 class MyToys(Resource):
     def get(self):
-        #first get the user from the session
-        #we need the UserToy class
-        #usrtys = UserToy.query.filter_by(user_id=usr.id).all();
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.getAllOfTypeAndSerializeThem(UserToy, 3, False, usr.id);
 
     def post(self):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.addItemToDBAndReturnResponse(UserToy, request, session, 0, 3);
 
 api.add_resource(MyToys, "/my-toys");
 
 class MyToysByID(Resource):
     def get(self, id):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.getItemByIDAndReturnResponse(id, UserToy, 3, usr.id);
 
     def patch(self, id):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.updateItemOnDBAndReturnResponse(id, UserToy, request, session, 0, 3);
 
     def delete(self, id):
-        pass;
+        usr = cm.getUserFromTheSession(session);
+        if (usr == None): return {"error": "401 error no users logged in!"}, 401;
+        else: return cm.removeItemFromDBAndReturnResponse(id, UserToy, usr.id);
 
 api.add_resource(MyToysByID, "/my-toys/<int:id>");
 
@@ -433,7 +468,7 @@ api.add_resource(Episodes, "/shows/<int:showid>/episodes");
 
 class EpisodesByID(Resource):
     def get(self, id):
-        return cm.getItemByIDAndReturnResponse(id, Episode);
+        return cm.getItemByIDAndReturnResponse(id, Episode, 3);
 
     def patch(self, id, showid):
         #you must be logged in first and be authorized
@@ -492,50 +527,6 @@ class ToysByID(Resource):
         return cm.completeDeleteItemFromDBAndReturnResponse(id, Toy, session);
 
 api.add_resource(ToysByID, "/toys/<int:id>");
-
-#not sure if these are needed or not...
-
-class UserToys(Resource):
-    def get(self):
-        pass;
-
-    def post(self):
-        pass;
-
-#api.add_resource(Class, "url");
-
-class UserToysByID(Resource):
-    def get(self, id):
-        pass;
-
-    def patch(self, id):
-        pass;
-
-    def delete(self, id):
-        pass;
-
-#api.add_resource(Class, "url");
-
-class UserEpisodesList(Resource):
-    def get(self):
-        pass;
-
-    def post(self):
-        pass;
-
-#api.add_resource(Class, "url");
-
-class UserEpisodesListByID(Resource):
-    def get(self, id):
-        pass;
-
-    def patch(self, id):
-        pass;
-
-    def delete(self, id):
-        pass;
-
-#api.add_resource(Class, "url");
 
 @app.route('/')
 def index():
