@@ -80,6 +80,18 @@ if __name__ == '__main__':
         print(pikachu);
         db.session.add(pikachu);
         db.session.commit();
+        #print("SHOW GOING INTO TOY:");
+        #print(pm);
+        toyfour = Toy(name="FakeToy",
+                    price=20,
+                    description="fake-toy",
+                    show=pm);
+        #print("TOY BEFORE ADDING IT TO THE DB:");
+        #print(toyfour);
+        db.session.add(toyfour);
+        db.session.commit();
+        #print("TOY AFTER ADDING IT TO THE DB:");
+        print(toyfour);
         print("DONE CREATING DUMMY TOYS!");
         #the owner of the show, owns or has all of the toys
         ots = [UserToy(toy=t, user=t.show.owner, quantity=1) for t in Toy.query.all()];
@@ -332,23 +344,10 @@ if __name__ == '__main__':
             if (unitstfailed): raise Exception("toy price must not be negative!");
 
             #add data for usertoy test
-            print("CREATING DATA FOR USER-TOY QUANTITY TEST:");
+            #print("CREATING DATA FOR USER-TOY QUANTITY TEST:");
             #print("USER GOING INTO USERTOY:");
             #kdone = User.query.filter_by(id=2).first();
             #print(kdone);
-            #print("SHOW GOING INTO TOY:");
-            #print(pm);
-            toyfour = Toy(name="FakeToy",
-                        price=20,
-                        description="fake-toy",
-                        show=pm);
-            #print("TOY BEFORE ADDING IT TO THE DB:");
-            #print(toyfour);
-            db.session.add(toyfour);
-            db.session.commit();
-            #print("TOY AFTER ADDING IT TO THE DB:");
-            print(toyfour);
-
             #begin actual usertoy test here
             print("BEGIN ACTUAL USERTOY QUANTITY TEST HERE:");
             unitstfailed = True;
