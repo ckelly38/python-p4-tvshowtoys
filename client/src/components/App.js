@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Switch, Route } from "react-router-dom";
 import Navbar from "./Navbar";
 import Episode from "./Episode";
+import EpisodeList from "./EpisodeList";
 
 function App() {
   return <div>
@@ -25,6 +26,7 @@ function App() {
       </Route>
       <Route path="/shows/:showid/episodes">
         <h1>Episodes For Show</h1>
+        <EpisodeList />
       </Route>
       <Route path="/shows/:showid">
         <h1>Show</h1>

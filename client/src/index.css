@@ -5,3 +5,63 @@
   --text: hsla(0, 0%, 100%, 0.88);
 }
 
+.namecol {
+  width: 100px;
+}
+
+.seasnumalign, .epnumalign {
+  text-align: center;
+}
+
+.seasnum {
+  width: 60px;
+}
+
+.epnum {
+  width: 70px;
+}
+
+.border, .namecol, .seasnum, .epnum, .seasnumalign, .epnumalign {
+  border-color: black;
+  border-width: 2px;
+  border-style: solid;
+  border-collapse: collapse;
+}
+
+.homelinkcls {
+  background-color: red;
+}
+
+.toyslinkcls, .toysforshowlinkcls, .mytoyslinkcls {
+  background-color: orange;
+}
+
+.showslinkcls, .signuplinkcls {
+  background-color: yellow;
+}
+
+.epslinkcls, .myepslinkcls {
+  background-color: cyan;
+}
+
+.prefslinkcls {
+  background-color: pink;
+}
+
+.loginlinkcls {
+  background-color: lime;
+}
+
+.logoutlinkcls {
+  background-color: red;
+}
+
+.navbarcls, .homelinkcls, .toyslinkcls, .showslinkcls, .epslinkcls, .mytoyslinkcls
+.prefslinkcls, .loginlinkcls, .toysforshowlinkcls, .logoutlinkcls, .signuplinkcls,
+.myepslinkcls
+{
+  margin-left: 5px;
+  margin-right: 5px;
+  display: flex;
+  flex-direction: row;
+}
