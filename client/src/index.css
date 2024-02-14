@@ -13,6 +13,12 @@
   text-align: center;
 }
 
+.redbgclrtxtcntrborder
+{
+  background-color: red;
+  text-align: center;
+}
+
 .seasnum {
   width: 60px;
 }
@@ -21,7 +27,13 @@
   width: 70px;
 }
 
-.border, .namecol, .seasnum, .epnum, .seasnumalign, .epnumalign {
+.redbgclrborder
+{
+  background-color: red;
+}
+
+.border, .namecol, .seasnum, .epnum, .seasnumalign, .epnumalign,
+.redbgclrborder, .redbgclrtxtcntrborder {
   border-color: black;
   border-width: 2px;
   border-style: solid;

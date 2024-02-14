@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Switch, Route, Link, useParams } from "react-router-dom";
 import Episode from "./Episode";
 
@@ -10,21 +10,30 @@ function EpisodeList() {
    let [episodes, setEpisodes] = useState([]);
    let [description, setDescription] = useState("description");
    let [err, setError] = useState(false);
+   let mres = useRef(null);
    
    useEffect(() => {
     fetch("/shows/" + params.showid + "/episodes").
     then((res) => {
         console.log(res);
-        if (res.status === 200 || res.status < 300) return res.json();
+        let myobj = {};
+        myobj["url"] = "" + res.url;
+        myobj["status"] = res.status;
+        console.log(myobj);
+        mres.current = {...myobj};
+        console.log("AFTER SET STATE CALLED!");
+        if (res.status === 200 || (200 < res.status && res.status < 400)) return res.json();
         else
         {
+            console.log("BEFORE TRY!");
             try
             {
                 let mjsn = res.json();
                 return mjsn;
             }
-            catch (ex)
+            catch(ex)
             {
+                console.log("1did not get the json successfully!");
                 let errmsg = "a " + res.status + " error occured check the console for more details!" +
                     "<br /><br />URL: " + res.url + " NOT FOUND!<br /><br />Probably did " +
                     "not provide an <b><u>integer id</u></b> when requested!";
@@ -33,13 +42,14 @@ function EpisodeList() {
             }
             return res;
         }
-    }).
-    then((data) => {
+    })
+    .then((data) => {
         console.log(data);
         if (data === undefined || data === null) setEpisodes([]);
         else
         {
             let dkys = Object.keys(data);
+            console.log(dkys);
             for(let n = 0; n < dkys.length; n++)
             {
                 if (dkys[n] === "error")
@@ -52,13 +62,26 @@ function EpisodeList() {
             setEpisodes(data);
         }
         setLoaded(true);
-    }).catch((err) => {
+        //return data;
+    }).catch((ex) => {
         console.error("there was an error loading the episode data!");
-        console.error(err);
-        //setDescription("an error occured check the console for more details: " + err);
+        console.error(ex);
+        console.log(err);
+        if (err);
+        else
+        {
+            console.log("2did not get the json successfully!");
+            console.log(mres.current);
+            let errmsg = "a " + mres.current.status + " error occured check the console for more details!" +
+                "<br /><br />URL: " + mres.current.url + " NOT FOUND!<br /><br />Probably did " +
+                "not provide an <b><u>integer id</u></b> when requested!";
+            setDescription(errmsg);
+            setError(true);
+        }
     });
    }, []);
    console.log("episodes = ", episodes);
+   console.log("loaded = " + loaded);
    
    function createMarkUp()
    {
@@ -69,11 +92,11 @@ function EpisodeList() {
    if (err)
    {
     myeps = [<tr key={"swid" + params.showid +"errorep"} className="border">
-        <td className="namecol">loading...</td>
-        <td className="seasnumalign">-1</td>
-        <td className="epnumalign">-1</td>
-        <td className="border">Watch Link</td>
-        <td className="border" dangerouslySetInnerHTML={createMarkUp()}></td></tr>];
+        <td className="redbgclrborder">loading...</td>
+        <td className="redbgclrtxtcntrborder">-1</td>
+        <td className="redbgclrtxtcntrborder">-1</td>
+        <td className="redbgclrborder">Watch Link</td>
+        <td className="redbgclrborder" dangerouslySetInnerHTML={createMarkUp()}></td></tr>];
    }
    else
    {

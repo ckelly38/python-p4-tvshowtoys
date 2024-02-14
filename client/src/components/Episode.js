@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Switch, Route, Link, useParams } from "react-router-dom";
 
 function Episode({useinlist=false, epobj=null}) {
@@ -11,6 +11,7 @@ function Episode({useinlist=false, epobj=null}) {
    let [season_number, setSeasonNum] = useState(-1);
    let [episode_number, setEpisodeNum] = useState(-1);
    let [err, setError] = useState(false);
+   let mres = useRef(null);
 
    if (useinlist === undefined || useinlist === null)
    {
@@ -43,6 +44,11 @@ function Episode({useinlist=false, epobj=null}) {
     {
         fetch("/shows/" + params.showid + "/episodes/" + params.id).then((res) => {
             console.log(res);
+            let myobj = {};
+            myobj["url"] = "" + res.url;
+            myobj["status"] = res.status;
+            console.log(myobj);
+            mres.current = {...myobj};
             if (res.status === 200 || res.status < 300) return res.json();
             else
             {
@@ -61,8 +67,7 @@ function Episode({useinlist=false, epobj=null}) {
                 }
             }
             return res;
-        }).
-        then((data) => {
+        }).then((data) => {
             console.log(data);
             if (data === undefined || data === null);
             else
@@ -83,10 +88,22 @@ function Episode({useinlist=false, epobj=null}) {
             setEpisodeNum(data.episode_number);
             setDescription(data.description);
             setLoaded(true);
-        }).catch((err) => {
+        }).catch((ex) => {
             console.error("there was an error loading the episode data!");
-            console.error(err);
-            //setDescription("an error occured check the console for more details: " + err);
+            console.error(ex);
+            //setDescription("an error occured check the console for more details: " + ex);
+            console.log(err);
+            if (err);
+            else
+            {
+                console.log("2did not get the json successfully!");
+                console.log(mres.current);
+                let errmsg = "a " + mres.current.status + " error occured check the console for more details!" +
+                    "<br /><br />URL: " + mres.current.url + " NOT FOUND!<br /><br />Probably did " +
+                    "not provide an <b><u>integer id</u></b> when requested!";
+                setDescription(errmsg);
+                setError(true);
+            }
         });
     }
    }, []);
@@ -105,7 +122,7 @@ function Episode({useinlist=false, epobj=null}) {
         <td className="border">
             <Link to={"/shows/" + params.showid + "/episodes/" + epobj.id}>Watch It Now</Link>
         </td>
-        {err ? (<td  className="border" dangerouslySetInnerHTML={createMarkUp()}></td>) :
+        {err ? (<td className="redbgclrborder" dangerouslySetInnerHTML={createMarkUp()}></td>) :
         <td className="border">{description}</td>}
     </tr>);
    }
@@ -116,7 +133,8 @@ function Episode({useinlist=false, epobj=null}) {
         <div>Season #: {season_number}</div>
         <div>Episode #: {episode_number}</div>
         <h4>Description: </h4>
-        {err ? (<p dangerouslySetInnerHTML={createMarkUp()}></p>) : <p>{description}</p>}
+        {err ? (<p classname="redbgclrborder" dangerouslySetInnerHTML={createMarkUp()}></p>) :
+        <p>{description}</p>}
     </div>);
    }
 }
