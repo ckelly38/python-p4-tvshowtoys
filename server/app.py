@@ -546,7 +546,7 @@ api.add_resource(EpisodesByID, "/shows/<int:showid>/episodes/<int:id>");
 
 class Shows(Resource):
     def get(self):
-        return cm.getAllOfTypeAndSerializeThem(Show, 1), 200;
+        return cm.getAllOfTypeAndSerializeThem(Show, 3), 200;
 
     def post(self):
         #you must be logged in first and be authorized
@@ -556,7 +556,7 @@ api.add_resource(Shows, "/shows");
 
 class ShowsById(Resource):
     def get(self, id):
-        return cm.getItemByIDAndReturnResponse(id, Show, 1);
+        return cm.getItemByIDAndReturnResponse(id, Show, 3);
 
     def patch(self, id):
         #you must be logged in first and be authorized

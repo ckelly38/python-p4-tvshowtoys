@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Switch, Route } from "react-router-dom";
 import Navbar from "./Navbar";
-import EpisodeOrList from "./EpisodeOrList";
+import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
 
 function App() {
   return <div>
@@ -12,24 +12,33 @@ function App() {
       </Route>
       <Route exact path="/shows">
         <h1>Shows</h1>
+        <EpisodeToyShowOrList typenm="Show" uselist={true} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid/toys/:id">
         <h1>Toy For Show</h1>
+        <EpisodeToyShowOrList typenm="Toy" uselist={false} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid/toys">
         <h1>Toys For Show</h1>
+        <EpisodeToyShowOrList typenm="Toy" uselist={true} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid/episodes/:id">
-        <EpisodeOrList uselist={false} useinlist={false} epobj={null} />
+        <EpisodeToyShowOrList typenm="Episode" uselist={false} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid/episodes">
-        <EpisodeOrList uselist={true} useinlist={false} epobj={null} />
+        <EpisodeToyShowOrList typenm="Episode" uselist={true} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid">
         <h1>Show</h1>
+        <EpisodeToyShowOrList typenm="Show" uselist={false} useinlist={false} epobj={null} />
       </Route>
       <Route exact path="/toys">
         <h1>Toys</h1>
+        <EpisodeToyShowOrList typenm="Toy" uselist={true} useinlist={false} epobj={null} />
+      </Route>
+      <Route path="/toys/:id">
+        <h1>Toy</h1>
+        <EpisodeToyShowOrList typenm="Toy" uselist={false} useinlist={false} epobj={null} />
       </Route>
       <Route exact path="/my-episodes">
         <h1>My Episodes</h1>
