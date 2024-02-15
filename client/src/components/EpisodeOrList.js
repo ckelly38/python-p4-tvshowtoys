@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Switch, Route, Link, useParams } from "react-router-dom";
-import Episode from "./Episode";
 
 function letMustBeBoolean(val, vnm="boolvarnm")
 {
@@ -23,13 +22,16 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
     console.log(params);
 
     let [loaded, setLoaded] = useState(false);
-    let [episodes, setEpisodes] = useState([]);
-    let [description, setDescription] = useState("description");
     let [err, setError] = useState(false);
+    let [episodes, setEpisodes] = useState([]);
+    let myinitdataepobj = {"description": "description",
+        "name": "loading...",
+        "season_number": -1,
+        "episode_number": -1,
+        "showname": "Show Name"
+    };
+    let [myepdataobj, setMyEpDataObj] = useState(myinitdataepobj);
     let mres = useRef(null);
-    let [name, setEpisodeName] = useState("loading...");
-    let [season_number, setSeasonNum] = useState(-1);
-    let [episode_number, setEpisodeNum] = useState(-1);
 
     letMustBeBoolean(useinlist, "useinlist");
     letMustBeBoolean(uselist, "uselist");
@@ -53,7 +55,8 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
 
         if (getdata)
         {
-            let baseurl = "/shows/" + params.showid + "/episodes";
+            let baseurlnoeps = "/shows/" + params.showid;
+            let baseurl = baseurlnoeps + "/episodes";
             let murl = "";
             if (uselist) murl += baseurl;
             else murl = baseurl + "/" + params.id;
@@ -86,7 +89,9 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
                         "for more details!<br /><br />URL: " + res.url + " NOT FOUND!" +
                         "<br /><br />Probably did not provide an <b><u>integer id</u>" +
                         "</b> when requested!";
-                        setDescription(errmsg);
+                        let mynwepobj = {...myepdataobj};
+                        mynwepobj["description"] = errmsg;
+                        setMyEpDataObj(mynwepobj);
                         setError(true);
                     }
                     return res;
@@ -102,7 +107,9 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
                     {
                         if (dkys[n] === "error")
                         {
-                            setDescription(data["error"]);
+                            let mynwepobj = {...myepdataobj};
+                            mynwepobj["description"] = data["error"];
+                            setMyEpDataObj(mynwepobj);
                             setError(true);
                             return;
                         }
@@ -110,10 +117,13 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
                     if (uselist) setEpisodes(data);
                     else
                     {
-                        setEpisodeName(data.name);
-                        setSeasonNum(data.season_number);
-                        setEpisodeNum(data.episode_number);
-                        setDescription(data.description);
+                        let mynwepobj = {"name": data.name,
+                            "season_number": data.season_number,
+                            "episode_number": data.episode_number,
+                            "description": data.description,
+                            "showname": data.show.name
+                        };
+                        setMyEpDataObj(mynwepobj);
                     }
                 }
                 setLoaded(true);
@@ -131,17 +141,22 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
                     "console for more details!<br /><br />URL: " + mres.current.url +
                     " NOT FOUND!<br /><br />Probably did not provide an <b><u>integer " +
                     "id</u></b> when requested!";
-                    setDescription(errmsg);
+                    let mynwepobj = {...myepdataobj};
+                    mynwepobj["description"] = errmsg;
+                    setMyEpDataObj(mynwepobj);
                     setError(true);
                 }
             });
         }
         else
         {
-            setEpisodeName(epobj.name);
-            setSeasonNum(epobj.season_number);
-            setEpisodeNum(epobj.episode_number);
-            setDescription(epobj.description);
+            let mynwepobj = {"name": epobj.name,
+                "season_number": epobj.season_number,
+                "episode_number": epobj.episode_number,
+                "description": epobj.description,
+                "showname": epobj.show.name
+            };
+            setMyEpDataObj(mynwepobj);
             setLoaded(true);
         }
     }, []);
@@ -150,10 +165,11 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
     console.log("uselist = " + uselist);
     console.log("useinlist = " + useinlist);
     console.log("err = " + err);
+    console.log("myepdataobj = ", myepdataobj);
 
     function createMarkUp()
     {
-        return {__html: "" + description};
+        return {__html: "" + myepdataobj.description};
     }
 
     let myeps = null;
@@ -162,9 +178,9 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
         if (err)
         {
             myeps = [<tr key={"swid" + params.showid +"errorep"} className="border">
-            <td className="redbgclrborder">loading...</td>
-            <td className="redbgclrtxtcntrborder">-1</td>
-            <td className="redbgclrtxtcntrborder">-1</td>
+            <td className="redbgclrborder">{myinitdataepobj.name}</td>
+            <td className="redbgclrtxtcntrborder">{myinitdataepobj.season_number}</td>
+            <td className="redbgclrtxtcntrborder">{myinitdataepobj.episode_number}</td>
             <td className="redbgclrborder">Watch Link</td>
             <td className="redbgclrborder" dangerouslySetInnerHTML={createMarkUp()}></td></tr>];
         }
@@ -176,43 +192,51 @@ function EpisodeOrList({uselist, useinlist=false, epobj=null}) {
             });
         }
 
-        return (<table className="border">
-        <thead><tr className="border">
-        <td className="namecol">Name</td>
-        <td className="seasnum">Season #</td>
-        <td className="epnum">Episode #</td>
-        <td className="border">Watch Link</td>
-        <td className="border">Description</td>
-        </tr></thead>
-        <tbody>{myeps}</tbody>
-        </table>);
+        let mybgcolor = (err ? "red" : "cyan");
+        return (<div style={{backgroundColor: mybgcolor}}>
+            <h1>Episodes For Show: {myepdataobj.showname}</h1>
+            <table className="border">
+                <thead><tr className="border">
+                    <td className="namecol">Name</td>
+                    <td className="seasnum">Season #</td>
+                    <td className="epnum">Episode #</td>
+                    <td className="border">Watch Link</td>
+                    <td className="border">Description</td>
+                </tr></thead>
+                <tbody>{myeps}</tbody>
+            </table>
+        </div>);
     }
     else
     {
+        let mybgcolor = (err ? "red" : "cyan");
         if (useinlist)
         {
-            return (<tr id={"swid" + params.showid + "epid" + epobj.id} className="border">
-            <td className="namecol">{name}</td>
-            <td className="seasnumalign">{season_number}</td>
-            <td className="epnumalign">{episode_number}</td>
-            <td className="border">
-            <Link to={"/shows/" + params.showid + "/episodes/" + epobj.id}>Watch It Now</Link>
-            </td>
-            {err ? (<td className="redbgclrborder"
-            dangerouslySetInnerHTML={createMarkUp()}></td>) :
-            <td className="border">{description}</td>}
-            </tr>);
+            return (<tr id={"swid" + params.showid + "epid" + epobj.id} className="border" 
+                style={{backgroundColor: mybgcolor}}>
+                <td className="namecol">{myepdataobj.name}</td>
+                <td className="seasnumalign">{myepdataobj.season_number}</td>
+                <td className="epnumalign">{myepdataobj.episode_number}</td>
+                <td className="border">
+                <Link to={"/shows/" + params.showid + "/episodes/" + epobj.id}>Watch It Now</Link>
+                </td>
+                {err ? (<td
+                dangerouslySetInnerHTML={createMarkUp()}></td>) :
+                <td className="border">{myepdataobj.description}</td>}
+            </tr>);// className="redbgclrborder"
         }
         else
         {
-            return (<div id={"swid" + params.showid + "epid" + params.id}>
-            <h3>Episode Name: {name}</h3>
-            <div>Season #: {season_number}</div>
-            <div>Episode #: {episode_number}</div>
-            <h4>Description: </h4>
-            {err ? (<p classname="redbgclrborder"
-            dangerouslySetInnerHTML={createMarkUp()}></p>) :
-            <p>{description}</p>}
+            return (<div id={"swid" + params.showid + "epid" + params.id}
+                style={{backgroundColor: mybgcolor}}>
+                <h1>Episode For Show: {myepdataobj.showname}</h1>
+                <h3>Episode Name: {myepdataobj.name}</h3>
+                <div>Season #: {myepdataobj.season_number}</div>
+                <div>Episode #: {myepdataobj.episode_number}</div>
+                <h4>Description: </h4>
+                {err ? (<p style={{backgroundColor: "red"}}
+                dangerouslySetInnerHTML={createMarkUp()}></p>) :
+                <p>{myepdataobj.description}</p>}
             </div>);
         }
     }

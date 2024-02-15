@@ -20,11 +20,9 @@ function App() {
         <h1>Toys For Show</h1>
       </Route>
       <Route path="/shows/:showid/episodes/:id">
-        <h1>Episode For Show</h1>
         <EpisodeOrList uselist={false} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid/episodes">
-        <h1>Episodes For Show</h1>
         <EpisodeOrList uselist={true} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid">
