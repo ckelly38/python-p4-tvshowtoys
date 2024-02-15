@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Switch, Route } from "react-router-dom";
 import Navbar from "./Navbar";
-import Episode from "./Episode";
-import EpisodeList from "./EpisodeList";
+import EpisodeOrList from "./EpisodeOrList";
 
 function App() {
   return <div>
@@ -22,11 +21,11 @@ function App() {
       </Route>
       <Route path="/shows/:showid/episodes/:id">
         <h1>Episode For Show</h1>
-        <Episode />
+        <EpisodeOrList uselist={false} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid/episodes">
         <h1>Episodes For Show</h1>
-        <EpisodeList />
+        <EpisodeOrList uselist={true} useinlist={false} epobj={null} />
       </Route>
       <Route path="/shows/:showid">
         <h1>Show</h1>
