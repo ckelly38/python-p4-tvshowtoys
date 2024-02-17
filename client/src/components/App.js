@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, useHistory } from "react-router-dom";
 import Navbar from "./Navbar";
 import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
 
 function App() {
+  //let history = useHistory();
   return <div>
       <Navbar />
       <Switch>
