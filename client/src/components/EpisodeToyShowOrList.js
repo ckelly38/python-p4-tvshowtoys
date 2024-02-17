@@ -66,11 +66,15 @@ function isNumber(val)//, vnm="numvarnm"
 function EpisodeToyShowOrList(props){
     const params = useParams();
     //let history = useHistory();
+
+    let [cloc, setCLoc] = useState(null);
+
     console.log("BEGIN COMPONENT WORK HERE:");
     console.log("URL params = ", params);
     //console.log("history = ", history);
     console.log("props.epobj = ", props.epobj);
     console.log("props.location = ", props.location);
+    console.log("cloc = ", cloc);
 
     letMustBeDefinedAndNotNull(props.typenm, "props.typenm");
 
@@ -436,7 +440,7 @@ function EpisodeToyShowOrList(props){
             else genAndSetNewDataStateObject(props.epobj, null);
             setLoaded(true);
         }
-    }, [params, props.epobj, props.useinlist, props.uselist, props.typenm]);
+    }, [params, cloc, props.epobj, props.useinlist, props.uselist, props.typenm]);
     console.log("AFTER USE EFFECT:");
     console.log("toys = ", toys);
     console.log("shows = ", shows);
@@ -448,7 +452,44 @@ function EpisodeToyShowOrList(props){
     console.log("mytoydataobj = ", mytoydataobj);
     console.log("myshowdataobj = ", myshowdataobj);
     console.log("myepdataobj = ", myepdataobj);
+    console.log("props.location = ", props.location);
+    console.log("cloc = ", cloc);
     
+    let resetState = false;
+    if (cloc === undefined || cloc === null)
+    {
+        if (props.location === undefined || props.location === null);
+        else resetState = true;
+    }
+    else
+    {
+        if (props.location === undefined || props.location === null) resetState = true;
+        else
+        {
+            if (props.location.pathname === cloc.pathname);
+            else resetState = true;
+        }
+    }
+    console.log("resetState = " + resetState);
+
+    if (resetState)
+    {
+        console.log("BEGINNNING RESETTING STATE:");
+        setLoaded(false);
+        setError(false);
+        setEpisodes([]);
+        setShows([]);
+        setToys([]);
+        setMyShowDataObj(myinitdatashowobj);
+        setMyToyDataObj(myinitdatatoyobj);
+        setMyEpDataObj(myinitdataepobj);
+        mres = null;
+        setCLoc(props.location);
+        console.log("DONE RESETTING STATE!");
+    }
+    //else;//do nothing
+    console.log("AFTER LOCATION SET!");
+
 
     function createMarkUp()
     {

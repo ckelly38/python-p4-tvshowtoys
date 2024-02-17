@@ -11,36 +11,76 @@ function App() {
       <Route exact path="/">
         <h1>Project Client</h1>
       </Route>
-      <Route exact path="/shows">
-        <h1>Shows</h1>
-        <EpisodeToyShowOrList typenm="Show" uselist={true} useinlist={false} epobj={null} />
-      </Route>
-      <Route path="/shows/:showid/toys/:id">
+      <Route exact path="/shows" render={(props) => {
+        let myloc = props.location;
+        console.log("myloc = ", myloc);
+        return (<>
+          <h1>Shows</h1>
+          <EpisodeToyShowOrList typenm="Show" uselist={true} useinlist={false} epobj={null}
+            location={props.location} />
+        </>);
+      }} />
+      <Route path="/shows/:showid/toys/:id" render={(props) => {
+        let myloc = props.location;
+        console.log("myloc = ", myloc);
+        return (<>
         <h1>Toy For Show</h1>
-        <EpisodeToyShowOrList typenm="Toy" uselist={false} useinlist={false} epobj={null} />
-      </Route>
-      <Route path="/shows/:showid/toys">
+        <EpisodeToyShowOrList typenm="Toy" uselist={false} useinlist={false}  epobj={null}
+            location={props.location} />
+        </>);
+      }} />
+      <Route path="/shows/:showid/toys" render={(props) => {
+        let myloc = props.location;
+        console.log("myloc = ", myloc);
+        return (<>
         <h1>Toys For Show</h1>
-        <EpisodeToyShowOrList typenm="Toy" uselist={true} useinlist={false} epobj={null} />
-      </Route>
-      <Route path="/shows/:showid/episodes/:id">
-        <EpisodeToyShowOrList typenm="Episode" uselist={false} useinlist={false} epobj={null} />
-      </Route>
-      <Route path="/shows/:showid/episodes">
-        <EpisodeToyShowOrList typenm="Episode" uselist={true} useinlist={false} epobj={null} />
-      </Route>
-      <Route path="/shows/:showid">
+        <EpisodeToyShowOrList typenm="Toy" uselist={true} useinlist={false}  epobj={null}
+            location={props.location} />
+        </>);
+      }} />
+      <Route path="/shows/:showid/episodes/:id" render={(props) => {
+        let myloc = props.location;
+        console.log("myloc = ", myloc);
+        return (<>
+        <EpisodeToyShowOrList typenm="Episode" uselist={false} useinlist={false}  epobj={null}
+            location={props.location} />
+        </>);
+      }} />
+      <Route path="/shows/:showid/episodes" render={(props) => {
+        let myloc = props.location;
+        console.log("myloc = ", myloc);
+        return (<>
+        <EpisodeToyShowOrList typenm="Episode" uselist={true} useinlist={false}  epobj={null}
+            location={props.location} />
+        </>);
+      }} />
+      <Route path="/shows/:showid" render={(props) => {
+        let myloc = props.location;
+        console.log("myloc = ", myloc);
+        return (<>
         <h1>Show</h1>
-        <EpisodeToyShowOrList typenm="Show" uselist={false} useinlist={false} epobj={null} />
-      </Route>
-      <Route exact path="/toys">
+        <EpisodeToyShowOrList typenm="Show" uselist={false} useinlist={false}  epobj={null}
+            location={props.location} />
+        </>);
+      }} />
+      <Route exact path="/toys" render={(props) => {
+        let myloc = props.location;
+        console.log("myloc = ", myloc);
+        return (<>
         <h1>Toys</h1>
-        <EpisodeToyShowOrList typenm="Toy" uselist={true} useinlist={false} epobj={null} />
-      </Route>
-      <Route path="/toys/:id">
+        <EpisodeToyShowOrList typenm="Toy" uselist={true} useinlist={false}  epobj={null}
+            location={props.location} />
+        </>);
+      }} />
+      <Route path="/toys/:id" render={(props) => {
+        let myloc = props.location;
+        console.log("myloc = ", myloc);
+        return (<>
         <h1>Toy</h1>
-        <EpisodeToyShowOrList typenm="Toy" uselist={false} useinlist={false} epobj={null} />
-      </Route>
+        <EpisodeToyShowOrList typenm="Toy" uselist={false} useinlist={false}  epobj={null}
+            location={props.location} />
+        </>);
+      }} />
       <Route exact path="/my-episodes">
         <h1>My Episodes</h1>
       </Route>
