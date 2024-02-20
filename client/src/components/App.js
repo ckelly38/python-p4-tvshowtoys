@@ -16,8 +16,8 @@ function App() {
         console.log("myloc = ", myloc);
         return (<>
           <h1>Shows</h1>
-          <EpisodeToyShowOrList typenm="Show" uselist={true} useinlist={false} epobj={null}
-            location={myloc} />
+          <EpisodeToyShowOrList key={"swfromapp"} typenm="Show" uselist={true} useinlist={false}
+            epobj={null} location={myloc} />
         </>);
       }} />
       <Route path="/shows/:showid/toys/:id" render={(props) => {
@@ -25,8 +25,8 @@ function App() {
         console.log("myloc = ", myloc);
         return (<>
         <h1>Toy For Show</h1>
-        <EpisodeToyShowOrList typenm="Toy" uselist={false} useinlist={false} epobj={null}
-            location={myloc} />
+        <EpisodeToyShowOrList key={"tyfromapp"} typenm="Toy" uselist={false} useinlist={false}
+          epobj={null} location={myloc} />
         </>);
       }} />
       <Route path="/shows/:showid/toys" render={(props) => {
@@ -34,24 +34,24 @@ function App() {
         console.log("myloc = ", myloc);
         return (<>
         <h1>Toys For Show</h1>
-        <EpisodeToyShowOrList typenm="Toy" uselist={true} useinlist={false} epobj={null}
-            location={myloc} />
+        <EpisodeToyShowOrList key={"tyfromapp"} typenm="Toy" uselist={true} useinlist={false}
+          epobj={null} location={myloc} />
         </>);
       }} />
       <Route path="/shows/:showid/episodes/:id" render={(props) => {
         let myloc = props.location;
         console.log("myloc = ", myloc);
         return (<>
-        <EpisodeToyShowOrList typenm="Episode" uselist={false} useinlist={false} epobj={null}
-            location={myloc} />
+        <EpisodeToyShowOrList key={"epfromapp"} typenm="Episode" uselist={false} useinlist={false}
+          epobj={null} location={myloc} />
         </>);
       }} />
       <Route path="/shows/:showid/episodes" render={(props) => {
         let myloc = props.location;
         console.log("myloc = ", myloc);
         return (<>
-        <EpisodeToyShowOrList typenm="Episode" uselist={true} useinlist={false} epobj={null}
-            location={myloc} />
+        <EpisodeToyShowOrList key={"epfromapp"} typenm="Episode" uselist={true} useinlist={false}
+          epobj={null} location={myloc} />
         </>);
       }} />
       <Route path="/shows/:showid" render={(props) => {
@@ -59,8 +59,8 @@ function App() {
         console.log("myloc = ", myloc);
         return (<>
         <h1>Show</h1>
-        <EpisodeToyShowOrList typenm="Show" uselist={false} useinlist={false} epobj={null}
-            location={myloc} />
+        <EpisodeToyShowOrList key={"swfromapp"} typenm="Show" uselist={false} useinlist={false}
+          epobj={null} location={myloc} />
         </>);
       }} />
       <Route exact path="/toys" render={(props) => {
@@ -68,8 +68,8 @@ function App() {
         console.log("myloc = ", myloc);
         return (<>
         <h1>Toys</h1>
-        <EpisodeToyShowOrList typenm="Toy" uselist={true} useinlist={false} epobj={null}
-            location={myloc} />
+        <EpisodeToyShowOrList key={"tyfromapp"} typenm="Toy" uselist={true} useinlist={false}
+          epobj={null} location={myloc} />
         </>);
       }} />
       <Route path="/toys/:id" render={(props) => {
@@ -77,8 +77,8 @@ function App() {
         console.log("myloc = ", myloc);
         return (<>
         <h1>Toy</h1>
-        <EpisodeToyShowOrList typenm="Toy" uselist={false} useinlist={false} epobj={null}
-            location={myloc} />
+        <EpisodeToyShowOrList key={"tyfromapp"} typenm="Toy" uselist={false} useinlist={false}
+          epobj={null} location={myloc} />
         </>);
       }} />
       <Route exact path="/my-episodes">

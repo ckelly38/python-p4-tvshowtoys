@@ -95,20 +95,23 @@ function EpisodeToyShowOrList(props){
         "season_number": -1,
         "episode_number": -1,
         "showname": "Show Name",
-        "showid": -1
+        "showid": -1,
+        "id": -1
     };
     let myinitdatatoyobj = {"description": "description",
         "name": "loading...",
         "showname": "Show Name",
         "price": -1,
-        "showid": -1
+        "showid": -1,
+        "id": -1
     };
     let myinitdatashowobj = {"description": "description",
         "name": "loading...",
         "numseasons": -1,
         "numepisodesperseason": -1,
         "totalepisodes": -1,
-        "showid": -1
+        "showid": -1,
+        "id": -1
     };
     let [myshowdataobj, setMyShowDataObj] = useState(myinitdatashowobj);
     let [mytoydataobj, setMyToyDataObj] = useState(myinitdatatoyobj);
@@ -251,7 +254,8 @@ function EpisodeToyShowOrList(props){
                 "episode_number": olddataobj.episode_number,
                 "description": olddataobj.description,
                 "showname": olddataobj.show.name,
-                "showid": olddataobj.show.id
+                "showid": olddataobj.show.id,
+                "id": olddataobj.id
             };
             setMyEpDataObj(mynwepobj);
             console.log("SETTING NEW VALUE FOR SHOWNAME TO: " + olddataobj.show.name);
@@ -263,7 +267,8 @@ function EpisodeToyShowOrList(props){
                 "name": olddataobj.name,
                 "showname": olddataobj.show.name,
                 "price": olddataobj.price,
-                "showid": olddataobj.show.id
+                "showid": olddataobj.show.id,
+                "id": olddataobj.id
             };
             setMyToyDataObj(mynwtoyobj);
             console.log("SETTING NEW VALUE FOR SHOWNAME TO: " + olddataobj.show.name);
@@ -283,7 +288,8 @@ function EpisodeToyShowOrList(props){
                 "numseasons": msnobj.numseasons,
                 "numepisodesperseason": msnobj.numepisodesperseason,
                 "totalepisodes": msnobj.totalepisodes,
-                "showid": olddataobj.id
+                "showid": olddataobj.id,
+                "id": olddataobj.id
             };
             setMyShowDataObj(mynwshowobj);
             //console.log(olddataobj);
@@ -636,6 +642,14 @@ function EpisodeToyShowOrList(props){
                 {
                     if (stra === undefined || stra === null) return true;
                 }
+                else
+                {
+                    if (stra === undefined || stra === null);
+                    else
+                    {
+                        if (stra === mstrs[n]) return true;
+                    }
+                }
             }
 
             return false;
@@ -722,14 +736,31 @@ function EpisodeToyShowOrList(props){
         console.log(props.location);
         console.log(cloc);
 
+        const epspersnnameslist = getAcceptedNamesForNumEpisodesPerSeason();
+        console.log("epspersnnameslist = ", epspersnnameslist);
+
+        //console.warn("mydataobj = ", mydataobj);
+        //console.warn("typenm = " + props.typenm);
+
         let mytds = myhlist.map((mstr) =>
         {
             console.log("mstr = " + mstr);
             
             if (mstr === "Description")
             {
-                if (err) return (<td dangerouslySetInnerHTML={createMarkUp()}></td>);
-                else return (<td className="border">{mydataobj.description}</td>);
+                let basekynm = "desc" + props.epobj.id;
+                if (err)
+                {
+                    //console.warn("*mydescky = err" + basekynm);
+                    return (<td key={"err" + basekynm} dangerouslySetInnerHTML={createMarkUp()}>
+                        </td>);
+                }
+                else
+                {
+                    //console.warn("*mydescky = normal" + basekynm);
+                    return (<td key={"normal" + basekynm} className="border">
+                        {mydataobj.description}</td>);
+                }
             }
 
             let clsnm = getCSSClassNameForHeader(mstr, true);
@@ -742,13 +773,16 @@ function EpisodeToyShowOrList(props){
             else if (mstr === "Episode #") mky = "episode_number";
             else if (mstr === "# Of Episodes") mky = "totalepisodes";
             else if (mstr === "# Of Seasons") mky = "numseasons";
-            else if (isStringAOnStringBList(mstr, getAcceptedNamesForNumEpisodesPerSeason()))
+            else if (isStringAOnStringBList(mstr, epspersnnameslist))
             {
                 mky = "numepisodesperseason";
             }
             else if (mstr === "Watch Link" || mstr === "Episodes Link" || mstr === "Toys Link");
             else mky = "" + mstr.toLowerCase();
+            
             if (mstr === "Watch Link") mykynm = "watchlink";
+            else if (mstr === "Episodes Link") mykynm = "episodeslink";
+            else if (mstr === "Toys Link") mykynm = "toyslink";
             else mykynm = "" + mky;
             console.log("mky = " + mky);
             console.log("mykynm = " + mykynm);
@@ -759,17 +793,20 @@ function EpisodeToyShowOrList(props){
                 if (mstr === "Watch Link")
                 {
                     let mlval = "/shows/" + params.showid + "/episodes/" + props.epobj.id;
-                    itemval = (<Link to={mlval}>Watch It Now</Link>);
+                    //console.warn("*mylnkky = " + (mykynm + props.epobj.id));
+                    itemval = (<Link key={mykynm + props.epobj.id} to={mlval}>Watch It Now</Link>);
                 }
                 else if (mstr === "Episodes Link")
                 {
                     let mlval = "/shows/" + props.epobj.id + "/episodes";
-                    itemval = (<Link to={mlval}>Episodes</Link>);
+                    //console.warn("*mylnkky = " + (mykynm + props.epobj.id));
+                    itemval = (<Link key={mykynm + props.epobj.id} to={mlval}>Episodes</Link>);
                 }
                 else if (mstr === "Toys Link")
                 {
                     let mlval = "/shows/" + props.epobj.id + "/toys";
-                    itemval = (<Link to={mlval}>Toys</Link>);
+                    //console.warn("*mylnkky = " + (mykynm + props.epobj.id));
+                    itemval = (<Link key={mykynm + props.epobj.id} to={mlval}>Toys</Link>);
                 }
                 else console.error("NEED TO DO SOMETHING HERE FOR THIS ITEM (" + mstr + ")!");
             }
@@ -780,21 +817,38 @@ function EpisodeToyShowOrList(props){
                     //if type is show, then /shows/ the id
                     //if type is toy, then /toys/ the id
                     let mlval = "" + props.location.pathname + "/" + props.epobj.id;
-                    itemval = (<Link to={mlval}>{mydataobj[mky]}</Link>);
+                    let mylnkky = "" + props.typenm.toLowerCase() + "namelink" + props.epobj.id;
+                    //console.warn("*mylnkky = " + mylnkky);
+                    itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);
                 }
                 else if (mstr === "Show Name")
                 {
                     let mlval = "/shows/" + mydataobj.showid;
-                    itemval = (<Link to={mlval}>{mydataobj[mky]}</Link>);
+                    let mylnkky = "shownamelink" + mydataobj.showid + "foritemid" +
+                        props.epobj.id;
+                    //console.warn("*mylnkky = " + mylnkky);
+                    itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);
                 }
                 else itemval = mydataobj[mky];
             }
             console.log("itemval = ", itemval);
+            
+            let fcolkynm = "";
+            if (props.typenm === "Show") fcolkynm = "colfor" + mykynm + mydataobj.showid;
+            else fcolkynm = "colfor" + mykynm + mydataobj.id;
+            //console.warn("*fcolkynm = " + fcolkynm);
 
-            return (<td key={mykynm + mydataobj.id} className={clsnm}>{itemval}</td>);
+            return (<td key={fcolkynm} className={clsnm}>{itemval}</td>);
         });
 
-        return (<tr id={"swid" + params.showid + "epid" + props.epobj.id} className="border" 
+        let kynmidnm = "";
+        if (params.showid === undefined || params.showid === null)
+        {
+            kynmidnm = "rowforswidepid" + props.epobj.id;
+        }
+        else kynmidnm = "rowforswid" + params.showid + "epid" + props.epobj.id;
+        //console.warn("*kynmidnm = " + kynmidnm);
+        return (<tr key={kynmidnm} id={kynmidnm} className="border" 
             style={{backgroundColor: mybgcolor}}>{mytds}</tr>);
     }
 
@@ -804,7 +858,29 @@ function EpisodeToyShowOrList(props){
     else
     {
         if (err) setLoaded(true);
-        else return <div>loading...</div>;
+        else 
+        {
+            if (props.useinlist)
+            {
+                if (props.epobj === undefined || props.epobj === null)
+                {
+                    //console.warn("NO EPOBJ!");
+                    //console.warn("*kynmidnm = loadingrow0");
+                    //console.warn("*kynmidnm = loadingcol0");
+                    return (<tr key={"loadingrow0"}>
+                    <td key={"loadingcol0"}>loading...</td></tr>);
+                }
+                else
+                {
+                    //console.warn("THERE IS AN EPOBJ!");
+                    //console.warn("*kynmidnm = loadingrow" + props.epobj.id);
+                    //console.warn("*kynmidnm = loadingcol" + props.epobj.id);
+                    return (<tr key={"loadingrow" + props.epobj.id}>
+                    <td key={"loadingcol" + props.epobj.id}>loading...</td></tr>);
+                }
+            }
+            else return <div>loading...</div>;
+        }
     }
     console.log("FINAL loaded = " + loaded);
     console.log("FINAL mytoydataobj = ", mytoydataobj);
@@ -869,6 +945,9 @@ function EpisodeToyShowOrList(props){
                     else if (props.typenm === "Show") kynm = "swidswid" + ep.id;
                     else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
                 }
+                kynm = "kidcontainerfor" + kynm;
+                //console.warn("IN MYEPS NO ERR!");
+                //console.warn("*kynm = " + kynm);
                 return (<EpisodeToyShowOrList key={kynm} typenm={props.typenm} uselist={false}
                     useinlist={true} epobj={ep} location={props.location} />);
             });
