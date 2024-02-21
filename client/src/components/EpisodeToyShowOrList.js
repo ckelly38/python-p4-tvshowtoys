@@ -902,8 +902,8 @@ function EpisodeToyShowOrList(props){
                 let basekynm = "desc" + mydataobj.id;
                 if (err)
                 {
-                    console.warn("*mydescky = err" + basekynm);
-                    console.warn("*myhkynm = errcontainer" + basekynm);
+                    //console.warn("*mydescky = err" + basekynm);
+                    //console.warn("*myhkynm = errcontainer" + basekynm);
                     return (<div key={"containerforerrcontainer" + basekynm}>
                         <h4 key={"errcontainer" + basekynm}>Description: </h4>
                         <p key={"err" + basekynm} style={{backgroundColor: "red"}}
@@ -911,8 +911,8 @@ function EpisodeToyShowOrList(props){
                 }
                 else
                 {
-                    console.warn("*mydescky = normal" + basekynm);
-                    console.warn("*myhkynm = normalcontainer" + basekynm);
+                    //console.warn("*mydescky = normal" + basekynm);
+                    //console.warn("*myhkynm = normalcontainer" + basekynm);
                     return (<div key={"containerfornormalcontainer" + basekynm}>
                         <h4 key={"normalcontainer" + basekynm}>Description: </h4>
                         <p key={"normal" + basekynm}>{mydataobj.description}</p></div>);
@@ -920,10 +920,10 @@ function EpisodeToyShowOrList(props){
             }
             else if (mstr === "Show Name")
             {
-                console.warn("*myhkynm = shownametitle" + mydataobj.showname);
+                //console.warn("*myhkynm = shownametitle" + mydataobj.showname);
                 let swnmlnkky = "showkylnk" + mydataobj.showid;
                 let swlnkaddr = "/shows/" + mydataobj.showid;
-                console.warn("*swnmlnkky = " + swnmlnkky);
+                //console.warn("*swnmlnkky = " + swnmlnkky);
                 return (<h1 key={"shownametitle" + mydataobj.showname}>
                     {props.typenm} For Show: <Link key={swnmlnkky} to={swlnkaddr}>
                         {mydataobj.showname}</Link></h1>);
@@ -933,19 +933,19 @@ function EpisodeToyShowOrList(props){
                 let mynmstr = "" + props.typenm + " Name: " + mydataobj.name;
                 if (props.typenm === "Show")
                 {
-                    console.warn("*myhkynm = shownametitle" + mydataobj.name);
+                    //console.warn("*myhkynm = shownametitle" + mydataobj.name);
                     return (<h1 key={"shownametitle" + mydataobj.name}>{mynmstr}</h1>);
                 }
                 else
                 {
-                    console.warn("*myhkynm = eportoyname" + mynmstr);
+                    //console.warn("*myhkynm = eportoyname" + mynmstr);
                     return (<h3 key={"eportoyname" + mynmstr}>{mynmstr}</h3>);
                 }
             }
             else if (mstr === "Episode #" || mstr === "Season #" || mstr === "# Of Seasons" ||
                 mstr === "# Of Episodes" || mstr === "Price" || mky === "numepisodesperseason")
             {
-                console.warn("*mydivkynm = " + (mky + mydataobj.id));
+                //console.warn("*mydivkynm = " + (mky + mydataobj.id));
                 return (<div key={mky + mydataobj.id}>{mstr}: {mydataobj[mky]}</div>);
             }
             else if (mstr === "Watch Link")
@@ -954,8 +954,8 @@ function EpisodeToyShowOrList(props){
                 else
                 {
                     let mlval = "/shows/" + params.showid + "/episodes/" + mydataobj.id;
-                    console.warn("*mylnkky = " + (mykynm + mydataobj.id));
-                    console.warn("*mydivky = watchlinkforepisode" + mydataobj.id);
+                    //console.warn("*mylnkky = " + (mykynm + mydataobj.id));
+                    //console.warn("*mydivky = watchlinkforepisode" + mydataobj.id);
                     if (props.typenm === "Show")
                     {
                         return (<div key={"watchlinkforepisodecontainer" + mydataobj.id}>
@@ -977,8 +977,8 @@ function EpisodeToyShowOrList(props){
             else if (mstr === "Episodes Link")
             {
                 let mlval = "/shows/" + mydataobj.id + "/episodes";
-                console.warn("*mylnkky = " + (mykynm + mydataobj.id));
-                console.warn("*mydivky = watchlinkforepisodes" + mydataobj.id);
+                //console.warn("*mylnkky = " + (mykynm + mydataobj.id));
+                //console.warn("*mydivky = watchlinkforepisodes" + mydataobj.id);
                 return (<div key={"watchlinkforepisodescontainer" + mydataobj.id}>
                     <p key="blankp"></p>
                     <p key="oblankp"></p>        
@@ -989,8 +989,8 @@ function EpisodeToyShowOrList(props){
             else if (mstr === "Toys Link")
             {
                 let mlval = "/shows/" + mydataobj.id + "/toys";
-                console.warn("*mylnkky = " + (mykynm + mydataobj.id));
-                console.warn("*mydivky = linkfortoys" + mydataobj.id);
+                //console.warn("*mylnkky = " + (mykynm + mydataobj.id));
+                //console.warn("*mydivky = linkfortoys" + mydataobj.id);
                 return (<div key={"linkfortoyscontainer" + mydataobj.id}>
                     <div key={"linkfortoys" + mydataobj.id}>
                 {mstr}: <Link key={mykynm + mydataobj.id} to={mlval}>Toys</Link></div></div>);
@@ -1001,13 +1001,13 @@ function EpisodeToyShowOrList(props){
                 return null;
             }
         });
-        console.warn("mytds = ", mytds);
+        //console.warn("mytds = ", mytds);
 
         //<h1>{props.typenm} For Show: {myepdataobj.showname}</h1>
         let myidstr = "";
         if (props.typenm === "Show") myidstr = "swid" + params.showid;
         else myidstr = "swid" + params.showid + "epid" + params.id;
-        console.warn("*mylnkky = containerfor" + myidstr);
+        //console.warn("*mylnkky = containerfor" + myidstr);
         return (<div key={"containerfor" + myidstr} id={myidstr}
             style={{backgroundColor: mybgcolor}}>
             {mytds}
@@ -1152,14 +1152,24 @@ function EpisodeToyShowOrList(props){
         else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
         console.log("FINAL myhitemstr = " + myhitemstr);
 
+        let mysnmitemval = null;
+        if (usenoshowname);
+        else
+        {
+            if (err) mysnmitemval = (<span id="snm">{showname}</span>);
+            else
+            {
+                mysnmitemval = (<span id="snm">
+                    <Link to={"/shows/" + params.showid}>{showname}</Link></span>);
+            }
+        }
+
         //toys (for all shows, so no show name) vs
         //toys for show: show name
         //episodes for show: show name
         //shows
         return (<div style={{backgroundColor: mybgcolor}}>
-            <h1>{myhitemstr}{(usenoshowname) ? null :
-                <span id="snm"><Link to={"/shows/" + params.showid}>{showname}</Link></span>}
-            </h1>
+            <h1>{myhitemstr}{mysnmitemval}</h1>
             <table className="border">
                 <thead>{mytds}</thead>
                 <tbody>{myeps}</tbody>
