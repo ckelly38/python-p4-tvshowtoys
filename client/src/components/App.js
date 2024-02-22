@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Switch, Route, useHistory } from "react-router-dom";
 import Navbar from "./Navbar";
 import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
+import Login from "./Login";
 import CommonClass from "./commonclass";
 
 function App() {
@@ -64,7 +65,7 @@ function App() {
       </Route>
       <Route exact path="/login">
         <Navbar />
-        <h1>Login</h1>
+        <Login />
       </Route>
       <Route exact path="/logout">
         <Navbar />
