@@ -1,99 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Switch, Route, Link, useParams, useHistory } from "react-router-dom";
-
-function letMustBeDefinedAndNotNull(val, vnm="varnm")
-{
-    let varnm = "";
-    if (vnm === undefined || vnm === null || vnm.length < 1) varnm = "varnm";
-    else varnm = "" + vnm;
-    if (val === undefined || val === null)
-    {
-        throw new Error("" + varnm + " must be a defined variable!");
-    }
-}
-
-function letMustBeBoolean(val, vnm="boolvarnm")
-{
-    let varnm = "";
-    if (vnm === undefined || vnm === null || vnm.length < 1) varnm = "boolvarnm";
-    else varnm = "" + vnm;
-    if (val === undefined || val === null)
-    {
-        throw new Error("" + varnm + " must be a defined boolean variable!");
-    }
-    else
-    {
-        if (val === true || val === false);
-        else throw new Error("" + varnm + " must be a defined boolean variable!");
-    }
-}
-
-function isNumberOrInteger(val, useint=false)//, vnm="numvarnm"
-{
-    letMustBeBoolean(useint, "useint");
-    
-    //let varnm = "";
-    //if (vnm === undefined || vnm === null || vnm.length < 1) varnm = "numvarnm";
-    //else varnm = "" + vnm;
-    if (val === undefined || val === null) return false;
-    else
-    {
-        if (isNaN(val)) return false;
-        else
-        {
-            try
-            {
-                let num = Number(val);
-                if (useint) return (num == parseInt(val));
-                else return true;
-            }
-            catch(ex)
-            {
-                return false;
-            }
-        }
-    }
-}
-function isInteger(val)//, vnm="numvarnm"
-{
-    return isNumberOrInteger(val, true);//, vnm
-}
-function isNumber(val)//, vnm="numvarnm"
-{
-    return isNumberOrInteger(val, false);//, vnm
-}
-
-function isStringAOnStringBList(stra, mstrs)
-{
-    if (mstrs === undefined || mstrs === null || mstrs.length < 1) return false;
-    else
-    {
-        for (let n = 0; n < mstrs.length; n++)
-        {
-            if (mstrs[n] === undefined || mstrs[n] === null)
-            {
-                if (stra === undefined || stra === null) return true;
-            }
-            else
-            {
-                if (stra === undefined || stra === null);
-                else
-                {
-                    if (stra === mstrs[n]) return true;
-                }
-            }
-        }
-
-        return false;
-    }
-}
-
+import CommonClass from "./commonclass";
 
 function EpisodeToyShowOrList(props){
     const params = useParams();
     //let history = useHistory();
 
     let [cloc, setCLoc] = useState(null);
+    const cc = new CommonClass();
 
     console.log("BEGIN COMPONENT WORK HERE:");
     console.log("URL params = ", params);
@@ -102,7 +16,7 @@ function EpisodeToyShowOrList(props){
     console.log("props.location = ", props.location);
     console.log("cloc = ", cloc);
 
-    letMustBeDefinedAndNotNull(props.typenm, "props.typenm");
+    cc.letMustBeDefinedAndNotNull(props.typenm, "props.typenm");
 
     if (props.typenm === "Episode" || props.typenm === "Toy" || props.typenm === "Show");
     else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
@@ -143,8 +57,8 @@ function EpisodeToyShowOrList(props){
     let mres = useRef(null);
     //let snmref = useRef(null);
 
-    letMustBeBoolean(props.useinlist, "props.useinlist");
-    letMustBeBoolean(props.uselist, "props.uselist");
+    cc.letMustBeBoolean(props.useinlist, "props.useinlist");
+    cc.letMustBeBoolean(props.uselist, "props.uselist");
 
     if (props.useinlist)
     {
@@ -378,7 +292,7 @@ function EpisodeToyShowOrList(props){
             if (props.typenm === "Episode") baseurl += "/episodes";
             else if (props.typenm === "Toy")
             {
-                if (isInteger(params.showid)) baseurl += "/toys";//, "params.showid"
+                if (cc.isInteger(params.showid)) baseurl += "/toys";//, "params.showid"
                 else if (params.showid === undefined || params.showid === null)
                 {
                     baseurl = "" + onlytoysurl;
@@ -575,7 +489,7 @@ function EpisodeToyShowOrList(props){
 
     function getHeadersForType(useindivdisp=false)
     {
-        letMustBeBoolean(useindivdisp, "useindivdisp");
+        cc.letMustBeBoolean(useindivdisp, "useindivdisp");
 
         let hlist = null;
         if (props.typenm === "Episode")
@@ -608,7 +522,7 @@ function EpisodeToyShowOrList(props){
     {
         let centeredheaders = ["Season #", "Episode #", "Price", "# Of Episodes", "# Of Seasons",
             "# Of Episodes", "~ Total Episodes/Season"];
-        letMustBeDefinedAndNotNull(hstr, "hstr");
+        cc.letMustBeDefinedAndNotNull(hstr, "hstr");
         for (let n = 0; n < centeredheaders.length; n++)
         {
             if (hstr === centeredheaders[n]) return true;
@@ -639,7 +553,7 @@ function EpisodeToyShowOrList(props){
             cntrnuma = myinitdatashowobj.numseasons;
             cntrnumb = myinitdatashowobj.totalepisodes;
             itemname = myinitdatashowobj.name;
-            if (isInteger(params.showid))//, "params.showid"
+            if (cc.isInteger(params.showid))//, "params.showid"
             {
                 kynm = "swid" + params.showid + "errorsw";
             }
@@ -648,7 +562,7 @@ function EpisodeToyShowOrList(props){
         else if (props.typenm === "Toy")
         {
             itemname = myinitdatatoyobj.name;
-            if (isInteger(params.showid))//, "params.showid"
+            if (cc.isInteger(params.showid))//, "params.showid"
             {
                 kynm = "swid" + params.showid + "errorty";
             }
@@ -689,8 +603,8 @@ function EpisodeToyShowOrList(props){
 
     function getCSSClassNameForHeader(hstr, usecntr=false)
     {
-        letMustBeDefinedAndNotNull(hstr, "hstr");
-        letMustBeBoolean(usecntr, "usecntr");
+        cc.letMustBeDefinedAndNotNull(hstr, "hstr");
+        cc.letMustBeBoolean(usecntr, "usecntr");
         
         let mycntrtxtnm = "";
         if (usecntr) mycntrtxtnm = "align";
@@ -700,7 +614,7 @@ function EpisodeToyShowOrList(props){
         else if (hstr === "Price") return "epnum" + mycntrtxtnm;
         else if (hstr === "# Of Episodes") return "seasnum" + mycntrtxtnm;
         else if (hstr === "# Of Seasons") return "seasnum" + mycntrtxtnm;
-        else if (isStringAOnStringBList(hstr, getAcceptedNamesForNumEpisodesPerSeason()))
+        else if (cc.isStringAOnStringBList(hstr, getAcceptedNamesForNumEpisodesPerSeason()))
         {
             return "seasnum" + mycntrtxtnm;
         }
@@ -743,7 +657,7 @@ function EpisodeToyShowOrList(props){
         else if (mstr === "Episode #") mky = "episode_number";
         else if (mstr === "# Of Episodes") mky = "totalepisodes";
         else if (mstr === "# Of Seasons") mky = "numseasons";
-        else if (isStringAOnStringBList(mstr, myoepsnameslist))
+        else if (cc.isStringAOnStringBList(mstr, myoepsnameslist))
         {
             mky = "numepisodesperseason";
         }
@@ -924,9 +838,16 @@ function EpisodeToyShowOrList(props){
                 let swnmlnkky = "showkylnk" + mydataobj.showid;
                 let swlnkaddr = "/shows/" + mydataobj.showid;
                 //console.warn("*swnmlnkky = " + swnmlnkky);
+                let mynmstr = "" + props.typenm + " For Show: ";
+                let myitemval = null;
+                if (err) myitemval = "" + mydataobj.showname;
+                else
+                {
+                    myitemval = (<Link key={swnmlnkky} to={swlnkaddr}>
+                        {mydataobj.showname}</Link>);
+                }
                 return (<h1 key={"shownametitle" + mydataobj.showname}>
-                    {props.typenm} For Show: <Link key={swnmlnkky} to={swlnkaddr}>
-                        {mydataobj.showname}</Link></h1>);
+                    {mynmstr}{myitemval}</h1>);
             }
             else if (mstr === "Name")
             {
@@ -1096,7 +1017,7 @@ function EpisodeToyShowOrList(props){
             
             myeps = mylist.map((ep) => {
                 let kynm = "";
-                if (isInteger(params.showid))//, "params.showid"
+                if (cc.isInteger(params.showid))//, "params.showid"
                 {
                     kynm = "swid" + params.showid + "epid" + ep.id;
                 }
@@ -1128,7 +1049,7 @@ function EpisodeToyShowOrList(props){
         {
             //if using all toys, then not using just one showname
             //if using only toys for a show, then using a showname
-            if (isInteger(params.showid));
+            if (cc.isInteger(params.showid));
             else if (params.showid === undefined || params.showid === null)
             {
                 usenoshowname = true;
