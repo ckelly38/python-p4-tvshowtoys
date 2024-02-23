@@ -68,8 +68,11 @@ function Login({setuser=null})
                 {
                     //finish logging in
                     console.log("Successfully logged in!");
+                    let mynwusr = {...data};
+                    mynwusr["password"] = values["password"];
+
                     setLoggedIn(true);
-                    setuser(data);
+                    setuser(mynwusr);
                 }
             }).catch((err) => {
                 console.error("there was an error attempting to login!");

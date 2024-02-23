@@ -5,6 +5,7 @@ import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
 import Login from "./Login";
 import Logout from "./Logout";
 import CommonClass from "./commonclass";
+import SignUpPreferences from "./SignUpPreferences";
 
 function App() {
   //let history = useHistory();
@@ -15,15 +16,17 @@ function App() {
     let musrnm = "";
     let lgi = false;
     let alv = 0;
+    let pswd = "";
     if (user === undefined || user === null) musrnm = "not logged in";
     else
     {
       musrnm = user.name;
       alv = user.access_level;
       lgi = true;
+      pswd = user.password;
     }
 
-    return {"username": musrnm, "access_level": alv, "instatus": lgi};
+    return {"username": musrnm, "access_level": alv, "instatus": lgi, "password": pswd};
   }
   function getUserName()
   {
@@ -95,8 +98,9 @@ function App() {
         <h1>My Toys</h1>
       </Route>
       <Route exact path="/preferences">
-        <Navbar simpusrobj={getSimplifiedUserObj()} />
-        <h1>Preferences</h1>
+        {getLoggedInStatus() ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
+          <SignUpPreferences typenm="Preferences" simpusrobj={getSimplifiedUserObj()} />
+        </> : <Redirect to="/login" />}
       </Route>
       <Route exact path="/login">
         {getLoggedInStatus() ? <Redirect to="/" /> : <>
@@ -110,7 +114,7 @@ function App() {
       <Route exact path="/signup">
         {getLoggedInStatus() ? <Redirect to="/" /> : <>
             <Navbar simpusrobj={getSimplifiedUserObj()} />
-            <h1>Signup</h1></>}
+            <SignUpPreferences typenm="SignUp" simpusrobj={getSimplifiedUserObj()} /></>}
       </Route>
     </Switch>
   </div>);
