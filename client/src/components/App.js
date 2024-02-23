@@ -3,6 +3,7 @@ import { Switch, Route, Redirect, useHistory } from "react-router-dom";
 import Navbar from "./Navbar";
 import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
 import Login from "./Login";
+import Logout from "./Logout";
 import CommonClass from "./commonclass";
 
 function App() {
@@ -62,7 +63,7 @@ function App() {
       <Switch>
       <Route exact path="/">
         <Navbar simpusrobj={getSimplifiedUserObj()} />
-        <h1>Project Client</h1>
+        <h1>Home</h1>
         {getLoggedInStatus() ? <h2>Welcome {getUserName()}</h2>: <h2>You are not logged in!</h2>}
         <p>Dear User, simply <b>reloading the page will log you out.</b> Be careful.</p>
         <p>You can view the shows and toys we have and sell on the site.</p>
@@ -103,8 +104,8 @@ function App() {
           <Login setuser={setUser} /></>}
       </Route>
       <Route exact path="/logout">
-        <Navbar simpusrobj={getSimplifiedUserObj()} />
-        <h1>Logout</h1>
+        {getLoggedInStatus() ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
+        <Logout setuser={setUser} /></> : <Redirect to="/" />}
       </Route>
       <Route exact path="/signup">
         {getLoggedInStatus() ? <Redirect to="/" /> : <>
