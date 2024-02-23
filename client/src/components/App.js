@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Switch, Route, useHistory } from "react-router-dom";
+import { Switch, Route, Redirect, useHistory } from "react-router-dom";
 import Navbar from "./Navbar";
 import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
 import Login from "./Login";
@@ -7,6 +7,35 @@ import CommonClass from "./commonclass";
 
 function App() {
   //let history = useHistory();
+  let [user, setUser] = useState(null);
+
+  function getSimplifiedUserObj()
+  {
+    let musrnm = "";
+    let lgi = false;
+    let alv = 0;
+    if (user === undefined || user === null) musrnm = "not logged in";
+    else
+    {
+      musrnm = user.name;
+      alv = user.access_level;
+      lgi = true;
+    }
+
+    return {"username": musrnm, "access_level": alv, "instatus": lgi};
+  }
+  function getUserName()
+  {
+    return getSimplifiedUserObj()["username"];
+  }
+  function getLoggedInStatus()
+  {
+    return getSimplifiedUserObj()["instatus"];
+  }
+  function getAccessLevel()
+  {
+    return getSimplifiedUserObj()["access_level"];
+  }
 
   function genEpsShowsToysComponent(props, mky, mtype, uselist, useinlist, incnvbar)
   {
@@ -22,7 +51,7 @@ function App() {
     console.log("myloc = ", myloc);
 
     return (<>
-      {(incnvbar) ? <Navbar /> : null}
+      {(incnvbar) ? <Navbar simpusrobj={getSimplifiedUserObj()} /> : null}
       <EpisodeToyShowOrList key={mky} typenm={mtype} uselist={uselist} useinlist={useinlist}
         epobj={null} location={myloc} />
     </>);
@@ -32,8 +61,13 @@ function App() {
   return (<div>
       <Switch>
       <Route exact path="/">
-        <Navbar />
+        <Navbar simpusrobj={getSimplifiedUserObj()} />
         <h1>Project Client</h1>
+        {getLoggedInStatus() ? <h2>Welcome {getUserName()}</h2>: <h2>You are not logged in!</h2>}
+        <p>Dear User, simply <b>reloading the page will log you out.</b> Be careful.</p>
+        <p>You can view the shows and toys we have and sell on the site.</p>
+        <p>If you are logged in, you can view your watch history and your purchased toys.</p>
+      <p>If you have the appropriate access level, you can create new shows, episodes, and toys.</p>
       </Route>
       <Route exact path="/shows" render={(props) =>
         genEpsShowsToysComponent(props, "swfromapp", "Show", true, false, true)} />
@@ -52,28 +86,30 @@ function App() {
       <Route path="/toys/:id" render={(props) =>
         genEpsShowsToysComponent(props, "tyfromapp", "Toy", false, false, true)} />
       <Route exact path="/my-episodes">
-        <Navbar />
+        <Navbar simpusrobj={getSimplifiedUserObj()} />
         <h1>My Episodes</h1>
       </Route>
       <Route exact path="/my-toys">
-        <Navbar />
+        <Navbar simpusrobj={getSimplifiedUserObj()} />
         <h1>My Toys</h1>
       </Route>
       <Route exact path="/preferences">
-        <Navbar />
+        <Navbar simpusrobj={getSimplifiedUserObj()} />
         <h1>Preferences</h1>
       </Route>
       <Route exact path="/login">
-        <Navbar />
-        <Login />
+        {getLoggedInStatus() ? <Redirect to="/" /> : <>
+          <Navbar simpusrobj={getSimplifiedUserObj()} />
+          <Login setuser={setUser} /></>}
       </Route>
       <Route exact path="/logout">
-        <Navbar />
+        <Navbar simpusrobj={getSimplifiedUserObj()} />
         <h1>Logout</h1>
       </Route>
       <Route exact path="/signup">
-        <Navbar />
-        <h1>Signup</h1>
+        {getLoggedInStatus() ? <Redirect to="/" /> : <>
+            <Navbar simpusrobj={getSimplifiedUserObj()} />
+            <h1>Signup</h1></>}
       </Route>
     </Switch>
   </div>);

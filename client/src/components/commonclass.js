@@ -85,6 +85,11 @@ class CommonClass{
             return false;
         }
     }
+
+    isStringEmptyNullOrUndefined(stra)
+    {
+        return (stra === undefined || stra === null || stra.length < 1);
+    }
 }
 
 export default CommonClass;
