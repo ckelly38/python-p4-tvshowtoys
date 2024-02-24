@@ -2,10 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Switch, Route, Redirect, useHistory } from "react-router-dom";
 import Navbar from "./Navbar";
 import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
-import Login from "./Login";
 import Logout from "./Logout";
 import CommonClass from "./commonclass";
-import SignUpPreferences from "./SignUpPreferences";
+import SignUpLoginPreferences from "./SignUpLoginPreferences";
 
 function App() {
   //let history = useHistory();
@@ -99,13 +98,15 @@ function App() {
       </Route>
       <Route exact path="/preferences">
         {getLoggedInStatus() ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
-          <SignUpPreferences typenm="Preferences" simpusrobj={getSimplifiedUserObj()} />
+          <SignUpLoginPreferences typenm="Preferences"  setuser={setUser}
+            simpusrobj={getSimplifiedUserObj()} />
         </> : <Redirect to="/login" />}
       </Route>
       <Route exact path="/login">
         {getLoggedInStatus() ? <Redirect to="/" /> : <>
           <Navbar simpusrobj={getSimplifiedUserObj()} />
-          <Login setuser={setUser} /></>}
+          <SignUpLoginPreferences typenm="Login" setuser={setUser}
+            simpusrobj={getSimplifiedUserObj()} /></>}
       </Route>
       <Route exact path="/logout">
         {getLoggedInStatus() ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
@@ -114,7 +115,8 @@ function App() {
       <Route exact path="/signup">
         {getLoggedInStatus() ? <Redirect to="/" /> : <>
             <Navbar simpusrobj={getSimplifiedUserObj()} />
-            <SignUpPreferences typenm="SignUp" simpusrobj={getSimplifiedUserObj()} /></>}
+            <SignUpLoginPreferences typenm="SignUp"  setuser={setUser}
+              simpusrobj={getSimplifiedUserObj()} /></>}
       </Route>
     </Switch>
   </div>);
