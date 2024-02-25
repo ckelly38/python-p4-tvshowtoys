@@ -530,19 +530,31 @@ class Episodes(Resource):
         
 api.add_resource(Episodes, "/shows/<int:showid>/episodes");
 
+#SHOWID AND ID MUST SOMEHOW CORRESPOND
+#WHAT IT SHOULD BE IS SHOWID AND EPNUM NOT ID
+#/shows/SHOWID(1)/episodes/EPNUM(2) works, BUT WE NEED TO TRANSLATE IT TO THE ID
+#WE WANT TO FIND THE ITEM WHERE BOTH OF THOSE ARE THE CASE
 class EpisodesByID(Resource):
-    def get(self, showid, id):
+    def getIDForTheEpisode(self, showid, epnum):
+        myep = Episode.query.filter_by(show_id=showid, episode_number=epnum).first();
+        if (myep == None): return -1;
+        else: return myep.id;
+
+    def get(self, showid, epnum):
+        id = self.getIDForTheEpisode(showid, epnum);
         return cm.getItemByIDAndReturnResponse(id, Episode, 3);
 
-    def patch(self, id, showid):
+    def patch(self, epnum, showid):
         #you must be logged in first and be authorized
+        id = self.getIDForTheEpisode(showid, epnum);
         return cm.postOrPatchAndReturnResponse(Episode, request, session, False, showid, id, 3);
 
-    def delete(self, showid, id):
+    def delete(self, showid, epnum):
         #you must be logged in first and be authorized
+        id = self.getIDForTheEpisode(showid, epnum);
         return cm.completeDeleteItemFromDBAndReturnResponse(id, Episode, session);
 
-api.add_resource(EpisodesByID, "/shows/<int:showid>/episodes/<int:id>");
+api.add_resource(EpisodesByID, "/shows/<int:showid>/episodes/<int:epnum>");
 
 class Shows(Resource):
     def get(self):
@@ -606,19 +618,31 @@ class ToysForShow(Resource):
 
 api.add_resource(ToysForShow, "/shows/<int:showid>/toys");
 
+#WRONG SHOWID AND ID MUST SOMEHOW CORRESPOND
+#WHAT IT SHOULD BE IS SHOWID AND TOYNUM NOT ID
+#/shows/SHOWID(1)/toys/TOYNUM(2) works, BUT WE NEED TO TRANSLATE IT TO THE ID
+#WE WANT TO FIND THE ITEM WHERE BOTH OF THOSE ARE THE CASE
 class ToysForShowByID(Resource):
-    def get(self, id, showid):
+    def getIDForTheToy(self, showid, toynum):
+        myty = Toy.query.filter_by(show_id=showid, toy_number=toynum).first();
+        if (myty == None): return -1;
+        else: return myty.id;
+
+    def get(self, toynum, showid):
+        id = self.getIDForTheToy(self, showid, toynum);
         return cm.getItemByIDAndReturnResponse(id, Toy, 3);
 
-    def patch(self, id, showid):
+    def patch(self, toynum, showid):
         #you must be logged in first and be authorized
+        id = self.getIDForTheToy(self, showid, toynum);
         return cm.postOrPatchAndReturnResponse(Toy, request, session, False, showid, id, 3);
 
-    def delete(self, id, showid):
+    def delete(self, toynum, showid):
         #you must be logged in first and be authorized
+        id = self.getIDForTheToy(self, showid, toynum);
         return cm.completeDeleteItemFromDBAndReturnResponse(id, Toy, session);
 
-api.add_resource(ToysForShowByID, "/shows/<int:showid>/toys/<int:id>");
+api.add_resource(ToysForShowByID, "/shows/<int:showid>/toys/<int:toynum>");
 
 @app.route('/')
 def index():

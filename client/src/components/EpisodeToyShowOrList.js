@@ -580,12 +580,13 @@ function EpisodeToyShowOrList(props){
                     <td className="redbgclrtxtcntrborder">{cntrnumb}</td>
                 </>
             }
-            {(props.typenm === "Show") ?
-            <td className="redbgclrtxtcntrborder">{myinitdatashowobj.numepisodesperseason}</td>:
-            null}
+            {(props.typenm === "Show") ? <>
+            <td className="redbgclrtxtcntrborder">{myinitdatashowobj.numepisodesperseason}</td>
+            <td className="redbgclrborder">Watch Link</td></>: null}
             {(props.typenm === "Toy") ?
-            <td className="redbgclrtxtcntrborder">{myinitdatatoyobj.price}</td> :
-            <td className="redbgclrborder">Watch Link</td>}
+            <td className="redbgclrtxtcntrborder">{myinitdatatoyobj.price}</td> : null}
+            {(props.typenm === "Show") ? <td className="redbgclrborder">Toys Link</td>: null}
+            {(props.typenm === "Episode") ? <td className="redbgclrborder">Watch Link</td>: null}
             <td className="redbgclrborder" dangerouslySetInnerHTML={createMarkUp()}></td></tr>
         );
     }

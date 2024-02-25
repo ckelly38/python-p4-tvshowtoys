@@ -24,7 +24,7 @@ class GenerateSerializableRulesClass:
         elif (clsnm == "Show"): return ["id", "name", "description"];
         elif (clsnm == "Episode"):
             return ["id", "name", "description", "season_number", "episode_number"];
-        elif (clsnm == "Toy"): return ["id", "name", "description", "price"];
+        elif (clsnm == "Toy"): return ["id", "name", "description", "price", "toy_number"];
         elif (clsnm == "UserEpisodes"): return [];
         elif (clsnm == "UserToy"): return ["quantity"];
         else:
@@ -322,7 +322,8 @@ class Toy(db.Model, SerializerMixin):
     #constraints go inside the tableargs
     __table_args__ = (db.CheckConstraint("length(description) >= 1"),
                      db.CheckConstraint("length(name) >= 1"),
-                     db.CheckConstraint("price >= 0"));
+                     db.CheckConstraint("price >= 0"),
+                     db.CheckConstraint("toy_number >= 1"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
     id = db.Column(db.Integer, primary_key=True);
@@ -331,8 +332,9 @@ class Toy(db.Model, SerializerMixin):
     description = db.Column(db.String, nullable=False);
     
     show_id = db.Column(db.Integer, db.ForeignKey("shows.id"));
+    toy_number = db.Column(db.Integer);
     
-    #safeserializelist = ["id", "name", "description", "price"];
+    #safeserializelist = ["id", "name", "description", "price", "toy_number"];
     safeserializelist = genlists.getUnOrSafeListForClassName("Toy", True);
     unsafelist = genlists.getUnOrSafeListForClassName("Toy", False);
     #unsafelist = ["show.id", "show.name", "show.description", "users.id", "users.name",

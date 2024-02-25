@@ -55,6 +55,20 @@ if __name__ == '__main__':
         db.session.add(pm);
         db.session.commit();
         print("The show pokemon is create successfully!");
+        bkgn = Show(id=2,
+                  name="Backugan",
+                  description="This teachs this world about Backugan, that they are " +
+                  "basically animals that can fold up into a ball and be collected and battle " +
+                  "with each other. There are different types: Gold, Fire, Haos (Air), Aqua " +
+                  "(Water), Earth (Ventus), and Darkus. Each type has certain advantages and " +
+                  "disadvantages. This show follows characters who discover the Backugan when " +
+                  "Vistroia was forced to merge with Earth. As a result of said merge, a maze " +
+                  "is accessible through a projection device.",
+                  owner=cn);
+        print(bkgn);
+        db.session.add(bkgn);
+        db.session.commit();
+        print("The show Backugan is create successfully!");
         print("DONE CREATING DUMMY SHOWS!");
         eppmone = Episode(id=1,
                           name="Meet Ash",
@@ -70,13 +84,26 @@ if __name__ == '__main__':
         print(eppmone);
         db.session.add(eppmone);
         db.session.commit();
+        bkone = Episode(id=2,
+                        name="The Merge",
+                        season_number=1,
+                        episode_number=1,
+                        show=bkgn,
+                        description="This is when the Backugan first came to Earth " +
+                        "because they decided that Vistroia should merge with Earth. That also "
+                        "meant that the Maze on Earth was created too. Then several kids discovered " +
+                        "the Backugan in huge crator and all over other places in the world.");
+        print(bkone);
+        db.session.add(bkone);
+        db.session.commit();
         print("DONE CREATING DUMMY EPISODES!");
         pikachu = Toy(name="Pikachu",
                       price=3.25,
                       description="Stuffed animal that looks, talks, and vibrates like " +
                       "Pickachu when you push the buttons in its paws! Cannot actually zap " +
                       "you!",
-                      show=pm);
+                      show=pm,
+                      toy_number=1);
         print(pikachu);
         db.session.add(pikachu);
         db.session.commit();
@@ -85,13 +112,33 @@ if __name__ == '__main__':
         toyfour = Toy(name="FakeToy",
                     price=20,
                     description="fake-toy",
-                    show=pm);
+                    show=pm,
+                    toy_number=2);
         #print("TOY BEFORE ADDING IT TO THE DB:");
         #print(toyfour);
         db.session.add(toyfour);
         db.session.commit();
         #print("TOY AFTER ADDING IT TO THE DB:");
         print(toyfour);
+        otherfaketoy = Toy(name="FakeToy",
+                    price=20,
+                    description="fake-toy",
+                    show=pm,
+                    toy_number=3);
+        #print("TOY BEFORE ADDING IT TO THE DB:");
+        #print(otherfaketoy);
+        db.session.add(otherfaketoy);
+        db.session.commit();
+        #print("TOY AFTER ADDING IT TO THE DB:");
+        print(otherfaketoy);
+        drago = Toy(name="Drago",
+                    price=4.35,
+                    description="Fire type Backugan that unfolds into a red dragon.",
+                    show=bkgn,
+                    toy_number=1);
+        db.session.add(drago);
+        db.session.commit();
+        print(drago);
         print("DONE CREATING DUMMY TOYS!");
         #the owner of the show, owns or has all of the toys
         ots = [UserToy(toy=t, user=t.show.owner, quantity=1) for t in Toy.query.all()];
@@ -303,7 +350,8 @@ if __name__ == '__main__':
                             description="Stuffed animal that looks, talks, and vibrates like " +
                             "Pickachu when you push the buttons in its paws! Cannot actually zap " +
                             "you!",
-                            show=pm);
+                            show=pm,
+                            toy_number=3);
                 print(toyone);
                 db.session.add(toyone);
                 db.session.commit();
@@ -318,7 +366,8 @@ if __name__ == '__main__':
                 toytwo = Toy(name="OtherToy",
                             price=3.25,
                             description="",
-                            show=pm);
+                            show=pm,
+                            toy_number=3);
                 print(toytwo);
                 db.session.add(toytwo);
                 db.session.commit();
@@ -333,7 +382,8 @@ if __name__ == '__main__':
                 toythree = Toy(name="OtherToy",
                             price=-1,
                             description="descrtption",
-                            show=pm);
+                            show=pm,
+                            toy_number=3);
                 print(toythree);
                 db.session.add(toythree);
                 db.session.commit();
@@ -342,6 +392,22 @@ if __name__ == '__main__':
                 unitstfailed = False;
                 db.session.rollback();
             if (unitstfailed): raise Exception("toy price must not be negative!");
+        
+            unitstfailed = True;
+            try:
+                toyfive = Toy(name="OtherToy",
+                            price=-1,
+                            description="descrtption",
+                            show=pm,
+                            toy_number=-1);
+                print(toyfive);
+                db.session.add(toyfive);
+                db.session.commit();
+            except:
+                print("TOY NUMBER MUST NOT BE LESS THAN ONE: TEST PAST!");
+                unitstfailed = False;
+                db.session.rollback();
+            if (unitstfailed): raise Exception("toy number must not be less than one!");
 
             #add data for usertoy test
             #print("CREATING DATA FOR USER-TOY QUANTITY TEST:");
