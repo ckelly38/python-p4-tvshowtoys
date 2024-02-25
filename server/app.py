@@ -629,17 +629,17 @@ class ToysForShowByID(Resource):
         else: return myty.id;
 
     def get(self, toynum, showid):
-        id = self.getIDForTheToy(self, showid, toynum);
+        id = self.getIDForTheToy(showid, toynum);
         return cm.getItemByIDAndReturnResponse(id, Toy, 3);
 
     def patch(self, toynum, showid):
         #you must be logged in first and be authorized
-        id = self.getIDForTheToy(self, showid, toynum);
+        id = self.getIDForTheToy(showid, toynum);
         return cm.postOrPatchAndReturnResponse(Toy, request, session, False, showid, id, 3);
 
     def delete(self, toynum, showid):
         #you must be logged in first and be authorized
-        id = self.getIDForTheToy(self, showid, toynum);
+        id = self.getIDForTheToy(showid, toynum);
         return cm.completeDeleteItemFromDBAndReturnResponse(id, Toy, session);
 
 api.add_resource(ToysForShowByID, "/shows/<int:showid>/toys/<int:toynum>");

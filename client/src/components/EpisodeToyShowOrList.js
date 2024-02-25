@@ -719,13 +719,15 @@ function EpisodeToyShowOrList(props){
             else mykynm = "" + mky;
             console.log("mky = " + mky);
             console.log("mykynm = " + mykynm);
+            console.log("props.epobj = ", props.epobj);
 
             let itemval = null;
             if (mky === undefined || mky === null || mky.length < 1)
             {
                 if (mstr === "Watch Link")
                 {
-                    let mlval = "/shows/" + params.showid + "/episodes/" + props.epobj.id;
+                    let mlval = "/shows/" + params.showid + "/episodes/" +
+                        props.epobj.episode_number;
                     //console.warn("*mylnkky = " + (mykynm + props.epobj.id));
                     itemval = (<Link key={mykynm + props.epobj.id} to={mlval}>Watch It Now</Link>);
                 }
@@ -749,7 +751,44 @@ function EpisodeToyShowOrList(props){
                 {
                     //if type is show, then /shows/ the id
                     //if type is toy, then /toys/ the id
-                    let mlval = "" + props.location.pathname + "/" + props.epobj.id;
+                    console.log("props.location.pathname = " + props.location.pathname);
+                    
+                    let epobky = "";
+                    let mylnksopts = ["/toys", "/episodes"];
+                    let mylnkoptsindxs = mylnksopts.map((opt) =>
+                        props.location.pathname.indexOf(opt));
+                    let si = props.location.pathname.indexOf("/shows/");
+                    let vkyfnd = false;
+                    let siisvalid = (0 <= si && si < props.location.pathname.length);
+                    console.log("si = " + si);
+                    console.log("siisvalid = " + siisvalid);
+
+                    for (let n = 0; n < mylnksopts.length && siisvalid; n++)
+                    {
+                        if (0 <= mylnkoptsindxs[n] &&
+                            mylnkoptsindxs[n] < props.location.pathname.length)
+                        {
+                            //index is valid
+                            vkyfnd = true;
+                            if (props.typenm === "Show") epobky = "id";
+                            else if (props.typenm === "Episode") epobky = "episode_number";
+                            else if (props.typenm === "Toy") epobky = "toy_number";
+                            else
+                            {
+                                throw new Error("typenm must be Episode, Toy, or Show, but " +
+                                    "it was not!");
+                            }
+                            break;
+                        }
+                        //else;//do nothing
+                    }
+                    console.log("vkyfnd = " + vkyfnd);
+
+                    if (vkyfnd);
+                    else epobky = "id";
+                    console.log("epobky = " + epobky);
+
+                    let mlval = "" + props.location.pathname + "/" + props.epobj[epobky];
                     let mylnkky = "" + props.typenm.toLowerCase() + "namelink" + props.epobj.id;
                     //console.warn("*mylnkky = " + mylnkky);
                     itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);
@@ -875,7 +914,8 @@ function EpisodeToyShowOrList(props){
                 if (props.typenm === "Episode") return null;
                 else
                 {
-                    let mlval = "/shows/" + params.showid + "/episodes/" + mydataobj.id;
+                    let mlval = "/shows/" + params.showid + "/episodes/" +
+                        mydataobj.episode_number;
                     //console.warn("*mylnkky = " + (mykynm + mydataobj.id));
                     //console.warn("*mydivky = watchlinkforepisode" + mydataobj.id);
                     if (props.typenm === "Show")
