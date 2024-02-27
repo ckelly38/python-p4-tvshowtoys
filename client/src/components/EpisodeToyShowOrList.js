@@ -57,7 +57,6 @@ function EpisodeToyShowOrList(props){
     let [mytoydataobj, setMyToyDataObj] = useState(myinitdatatoyobj);
     let [myepdataobj, setMyEpDataObj] = useState(myinitdataepobj);
     let mres = useRef(null);
-    //let snmref = useRef(null);
     
     console.log("BEFORE USE EFFECT:");
     console.log("props.uselist = " + props.uselist);
@@ -261,7 +260,7 @@ function EpisodeToyShowOrList(props){
         let fivehundredrangemsg = "the server crashed and is not started OR it encountered " +
             "an error and needs to be restarted!";
         
-            let fourhundredrangemsg = "did not provide an <b><u>integer id</u></b> when requested!";
+        let fourhundredrangemsg = "did not provide an <b><u>integer id</u></b> when requested!";
 
         let errmsg = "a " + resobj.status + " error occured check the console " +
         "for more details!<br /><br />URL: " + resobj.url + " NOT FOUND!" +
@@ -271,20 +270,6 @@ function EpisodeToyShowOrList(props){
         else errmsg += fourhundredrangemsg;
 
         setErrorMessageState(errmsg);
-    }
-
-    function getBGColorToBeUsed()
-    {
-        let mybgcolor = "";
-        if (err) mybgcolor = "red";
-        else
-        {
-            if (props.typenm === "Episode") mybgcolor = "cyan";
-            else if (props.typenm === "Toy") mybgcolor = "orange";
-            else if (props.typenm === "Show") mybgcolor = "yellow";
-            else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
-        }
-        return mybgcolor;
     }
 
     useEffect(() => {
@@ -409,7 +394,10 @@ function EpisodeToyShowOrList(props){
                                 else setEpisodes(data);
                             }
                             else if (props.typenm === "Toy") setToys(data);
-                            else throw new Error("typenm must be Episode or Toy, but it was not!");
+                            else
+                            {
+                                throw new Error("typenm must be Episode or Toy, but it was not!");
+                            }
                         }
                         else if (props.typenm === "Show") setShows(data);
                         else
@@ -464,8 +452,8 @@ function EpisodeToyShowOrList(props){
                                     .then((odata) => {
                                         console.log(odata);
                                     }).catch((merr) => {
-                                        console.error("there was an error adding watched data to " +
-                                            "the server!");
+                                        console.error("there was an error adding watched " +
+                                            "data to the server!");
                                         console.error(merr);
                                     });
                                 }
@@ -586,56 +574,6 @@ function EpisodeToyShowOrList(props){
         return {__html: "" + mdataobj.description};
     }
 
-    function getHeadersForType(useindivdisp=false)
-    {
-        cc.letMustBeBoolean(useindivdisp, "useindivdisp");
-
-        let hlist = null;
-        if (props.typenm === "Episode")
-        {
-            console.log("useindivdisp = " + useindivdisp);
-
-            let shortephlist = ["Name", "Season #", "Episode #", "Watch Link", "Description"];
-            let longephlist = ["Show Name", "Name", "Season #", "Episode #", "Watch Link",
-                "Description"];
-            if (useindivdisp) return longephlist;
-            else return shortephlist;
-        }
-        else if (props.typenm === "Toy")
-        {
-            hlist = ["Name", "Show Name", "Price", "Description"];
-            if (useindivdisp)
-            {
-                let tempitem = "" + hlist[0];
-                hlist[0] = "" + hlist[1];
-                hlist[1] = "" + tempitem;
-            }
-        }
-        else if (props.typenm === "Show")
-        {
-            hlist = ["Name", "# Of Seasons", "# Of Episodes", "~ Total Episodes/Season",
-                "Episodes Link", "Toys Link", "Description"];
-        }
-        else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
-        return hlist;
-    }
-    function isHeaderCentered(hstr)
-    {
-        let centeredheaders = ["Season #", "Episode #", "Price", "# Of Episodes", "# Of Seasons",
-            "# Of Episodes", "~ Total Episodes/Season"];
-        cc.letMustBeDefinedAndNotNull(hstr, "hstr");
-        for (let n = 0; n < centeredheaders.length; n++)
-        {
-            if (hstr === centeredheaders[n]) return true;
-        }
-        return false;
-    }
-    function getAreHeadersForTypeCentered(myhlist = getHeadersForType())
-    {
-        if (myhlist === undefined || myhlist === null) return null;
-        else return myhlist.map((item) => isHeaderCentered(item));
-    }
-
     function genErrorItemOnList()
     {
         let cntrnuma = -1;
@@ -693,38 +631,6 @@ function EpisodeToyShowOrList(props){
         );
     }
 
-    function getAcceptedNamesForNumEpisodesPerSeason()
-    {
-        return ["~ Total Episodes/Season", "Approximate Total Episodes/Season",
-            "Approximate Total Episodes Per Season", "Rough Total Episodes Per Season",
-            "Rough Total Episodes/Season", "Rough Total Episodes /Season",
-            "Rough Total Episodes/ Season", "Rough Total Episodes / Season",
-            "Approximate Total Episodes /Season", "Approximate Total Episodes/ Season",
-            "Approximate Total Episodes / Season", "~ Total Episodes /Season",
-            "~ Total Episodes/ Season", "~ Total Episodes / Season"];
-    }
-
-    function getCSSClassNameForHeader(hstr, usecntr=false)
-    {
-        cc.letMustBeDefinedAndNotNull(hstr, "hstr");
-        cc.letMustBeBoolean(usecntr, "usecntr");
-        
-        let mycntrtxtnm = "";
-        if (usecntr) mycntrtxtnm = "align";
-
-        if (hstr === "Season #") return "seasnum" + mycntrtxtnm;
-        else if (hstr === "Episode #") return "epnum" + mycntrtxtnm;
-        else if (hstr === "Price") return "epnum" + mycntrtxtnm;
-        else if (hstr === "# Of Episodes") return "seasnum" + mycntrtxtnm;
-        else if (hstr === "# Of Seasons") return "seasnum" + mycntrtxtnm;
-        else if (cc.isStringAOnStringBList(hstr, getAcceptedNamesForNumEpisodesPerSeason()))
-        {
-            return "seasnum" + mycntrtxtnm;
-        }
-        else if (0 <= hstr.indexOf("Name") && hstr.indexOf("Name") < hstr.length) return "namecol";
-        else return "border";
-    }
-
     function genHeaderRowForList()
     {
         //if headername has Name in it, then use namecol classname
@@ -735,7 +641,7 @@ function EpisodeToyShowOrList(props){
         //default classname is border
         console.log("props.usemy = " + props.usemy);
 
-        let myhlist = getHeadersForType(props.usemy);
+        let myhlist = cc.getHeadersForType(props.typenm, props.usemy);
 
         let usemytd = null;
         if (props.usemy)
@@ -747,46 +653,11 @@ function EpisodeToyShowOrList(props){
         }
 
         let myotds = myhlist.map((mstr) =>
-            <td key={mstr} className={getCSSClassNameForHeader(mstr, false)}>{mstr}</td>);
+            <td key={mstr} className={cc.getCSSClassNameForHeader(mstr, false)}>{mstr}</td>);
         
-        let mytds = null;
-        if (props.usemy)
-        {
-            mytds = [usemytd];
-            myotds.forEach((item) => {
-                mytds.push(item);
-            });
-        }
-        else mytds = myotds;
+        let mytds = cc.addItemToBeginningOfList(myotds, usemytd, props.usemy);
 
         return (<tr className="border">{mytds}</tr>);
-    }
-
-    function getTheDataKeyNameFromString(mstr,
-        epspersnnameslist=getAcceptedNamesForNumEpisodesPerSeason())
-    {
-        let myoepsnameslist = null;
-        if (epspersnnameslist === undefined || epspersnnameslist === null ||
-            epspersnnameslist.length < 10)
-        {
-            myoepsnameslist = getAcceptedNamesForNumEpisodesPerSeason();
-        }
-        else myoepsnameslist = epspersnnameslist;
-        //console.log("myoepsnameslist = ", myoepsnameslist);
-
-        let mky = "";
-        if (mstr === "Show Name") mky = "showname";
-        else if (mstr === "Season #") mky = "season_number";
-        else if (mstr === "Episode #") mky = "episode_number";
-        else if (mstr === "# Of Episodes") mky = "totalepisodes";
-        else if (mstr === "# Of Seasons") mky = "numseasons";
-        else if (cc.isStringAOnStringBList(mstr, myoepsnameslist))
-        {
-            mky = "numepisodesperseason";
-        }
-        else if (mstr === "Watch Link" || mstr === "Episodes Link" || mstr === "Toys Link");
-        else mky = "" + mstr.toLowerCase();
-        return mky;
     }
 
     function displayItemInAList()
@@ -795,7 +666,7 @@ function EpisodeToyShowOrList(props){
         //needs to know if it is using the align class or not
         console.log("props.usemy = " + props.usemy);
 
-        let myhlist = getHeadersForType(props.usemy);
+        let myhlist = cc.getHeadersForType(props.typenm, props.usemy);
         console.log("myhlist = ", myhlist);
 
         //get the dataobj from state
@@ -804,7 +675,7 @@ function EpisodeToyShowOrList(props){
         console.log(props.location);
         console.log(cloc);
 
-        const epspersnnameslist = getAcceptedNamesForNumEpisodesPerSeason();
+        const epspersnnameslist = cc.getAcceptedNamesForNumEpisodesPerSeason();
         console.log("epspersnnameslist = ", epspersnnameslist);
 
         //console.warn("mydataobj = ", mydataobj);
@@ -833,7 +704,10 @@ function EpisodeToyShowOrList(props){
                     //         },
                     //         body: JSON.stringify(props.epobj)
                     //     };
-                    //     fetch(props.location.pathname + "/" + props.epobj.episode.id, myconfigobj)
+                    //     let myurl = "" + props.location.pathname + "/" +
+                    //          props.epobj.episode.id;
+                    //     console.log("myurl = " + myurl);
+                    //     fetch(myurl, myconfigobj)
                     //     .then((res) => res.json()).then((data) => {
                     //         console.log(data);
                     //         //props.setWatchedItems(?);
@@ -866,10 +740,10 @@ function EpisodeToyShowOrList(props){
                 }
             }
 
-            let clsnm = getCSSClassNameForHeader(mstr, true);
+            let clsnm = cc.getCSSClassNameForHeader(mstr, true);
             console.log("classname = " + clsnm);
             
-            let mky = getTheDataKeyNameFromString(mstr, epspersnnameslist);
+            let mky = cc.getTheDataKeyNameFromString(mstr, epspersnnameslist);
             let mykynm = "";
             if (mstr === "Watch Link") mykynm = "watchlink";
             else if (mstr === "Episodes Link") mykynm = "episodeslink";
@@ -887,7 +761,8 @@ function EpisodeToyShowOrList(props){
                     let mlval = "/shows/" + params.showid + "/episodes/" +
                         props.epobj.episode_number;
                     //console.warn("*mylnkky = " + (mykynm + props.epobj.id));
-                    itemval = (<Link key={mykynm + props.epobj.id} to={mlval}>Watch It Now</Link>);
+                    itemval = (<Link key={mykynm + props.epobj.id}
+                                    to={mlval}>Watch It Now</Link>);
                 }
                 else if (mstr === "Episodes Link")
                 {
@@ -971,15 +846,7 @@ function EpisodeToyShowOrList(props){
             return (<td key={fcolkynm} className={clsnm}>{itemval}</td>);
         });
 
-        let mytds = null;
-        if (props.usemy)
-        {
-            mytds = [usemytd];
-            myotds.forEach((item) => {
-                mytds.push(item);
-            });
-        }
-        else mytds = myotds;
+        let mytds = cc.addItemToBeginningOfList(myotds, usemytd, props.usemy);
 
         let kynmidnm = "";
         if (params.showid === undefined || params.showid === null)
@@ -994,7 +861,7 @@ function EpisodeToyShowOrList(props){
 
     function displayItemItself()
     {
-        let myhlist = getHeadersForType(true);
+        let myhlist = cc.getHeadersForType(props.typenm, true);
         console.log("myhlist = ", myhlist);
 
         //get the dataobj from state
@@ -1003,14 +870,14 @@ function EpisodeToyShowOrList(props){
         console.log(props.location);
         console.log(cloc);
 
-        const epspersnnameslist = getAcceptedNamesForNumEpisodesPerSeason();
+        const epspersnnameslist = cc.getAcceptedNamesForNumEpisodesPerSeason();
         console.log("epspersnnameslist = ", epspersnnameslist);
 
         let mytds = myhlist.map((mstr) =>
         {
             console.log("mstr = " + mstr);
 
-            let mky = getTheDataKeyNameFromString(mstr, epspersnnameslist);
+            let mky = cc.getTheDataKeyNameFromString(mstr, epspersnnameslist);
             let mykynm = "";
             if (mstr === "Watch Link") mykynm = "watchlink";
             else if (mstr === "Episodes Link") mykynm = "episodeslink";
@@ -1181,7 +1048,7 @@ function EpisodeToyShowOrList(props){
     console.log("FINAL showname = " + showname);
 
     let myeps = null;
-    let mybgcolor = getBGColorToBeUsed();
+    let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
     if (props.uselist)
     {
         console.log("USING A LIST!");
@@ -1190,33 +1057,11 @@ function EpisodeToyShowOrList(props){
         {
             console.log("DISPLAYING ERROR MSG!");
 
-            //for episodes the headers are:
-            //episode name
-            //season number (center)
-            //episode number (center)
-            //watch link
-            //description
-
-            //for shows the headers are:
-            //name
-            //total seasons (center)
-            //total episodes (center)
-            //~ total episodes/season (center)
-            //episodes link
-            //description
-
-            //for toys the headers are:
-            //name
-            //showname
-            //price (center)
-            //description
-            
             myeps = [genErrorItemOnList()];
         }
         else
         {
             console.log("NO ERROR ENCOUNTERED WHILE USING A LIST!");
-            //console.log("snmref = ", snmref);
 
             let mylist = null;
             if (props.typenm === "Episode") mylist = episodes;
@@ -1252,7 +1097,7 @@ function EpisodeToyShowOrList(props){
         //let mdataobj = getDataObjectFromType();
         console.log("SHOWNAME = " + showname);
 
-        let mybgcolor = getBGColorToBeUsed();
+        let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
         let mytds = genHeaderRowForList();
         let myhitemstr = "";
 
