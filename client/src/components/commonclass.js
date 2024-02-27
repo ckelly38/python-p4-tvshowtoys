@@ -1,10 +1,20 @@
 class CommonClass{
+    isItemNullOrUndefined(val)
+    {
+        return (val === undefined || val === null);
+    }
+
+    isStringEmptyNullOrUndefined(stra)
+    {
+        return (this.isItemNullOrUndefined(stra) || stra.length < 1);
+    }
+    
     letMustBeDefinedAndNotNull(val, vnm="varnm")
     {
         let varnm = "";
-        if (vnm === undefined || vnm === null || vnm.length < 1) varnm = "varnm";
+        if (this.isStringEmptyNullOrUndefined(vnm)) varnm = "varnm";
         else varnm = "" + vnm;
-        if (val === undefined || val === null)
+        if (this.isItemNullOrUndefined(val))
         {
             throw new Error("" + varnm + " must be a defined variable!");
         }
@@ -13,9 +23,9 @@ class CommonClass{
     letMustBeBoolean(val, vnm="boolvarnm")
     {
         let varnm = "";
-        if (vnm === undefined || vnm === null || vnm.length < 1) varnm = "boolvarnm";
+        if (this.isStringEmptyNullOrUndefined(vnm)) varnm = "boolvarnm";
         else varnm = "" + vnm;
-        if (val === undefined || val === null)
+        if (this.isItemNullOrUndefined(val))
         {
             throw new Error("" + varnm + " must be a defined boolean variable!");
         }
@@ -31,9 +41,9 @@ class CommonClass{
         this.letMustBeBoolean(useint, "useint");
         
         //let varnm = "";
-        //if (vnm === undefined || vnm === null || vnm.length < 1) varnm = "numvarnm";
+        //if (this.isStringEmptyNullOrUndefined(vnm)) varnm = "numvarnm";
         //else varnm = "" + vnm;
-        if (val === undefined || val === null) return false;
+        if (this.isItemNullOrUndefined(val)) return false;
         else
         {
             if (isNaN(val)) return false;
@@ -63,18 +73,18 @@ class CommonClass{
 
     isStringAOnStringBList(stra, mstrs)
     {
-        if (mstrs === undefined || mstrs === null || mstrs.length < 1) return false;
+        if (this.isStringEmptyNullOrUndefined(mstrs)) return false;
         else
         {
             for (let n = 0; n < mstrs.length; n++)
             {
-                if (mstrs[n] === undefined || mstrs[n] === null)
+                if (this.isItemNullOrUndefined(mstrs[n]))
                 {
-                    if (stra === undefined || stra === null) return true;
+                    if (this.isItemNullOrUndefined(stra)) return true;
                 }
                 else
                 {
-                    if (stra === undefined || stra === null);
+                    if (this.isItemNullOrUndefined(stra));
                     else
                     {
                         if (stra === mstrs[n]) return true;
@@ -86,9 +96,16 @@ class CommonClass{
         }
     }
 
-    isStringEmptyNullOrUndefined(stra)
+    countNumberOfACharInString(mchar, stra)
     {
-        return (stra === undefined || stra === null || stra.length < 1);
+        if (this.isStringEmptyNullOrUndefined(stra)) return 0;
+        else if (this.isItemNullOrUndefined(mchar)) return 0;
+        else
+        {
+            let numc = 0;
+            for (let n = 0; n < stra.length; n++) if (stra.charAt(n) === mchar) numc++;
+            return numc;
+        }
     }
 }
 

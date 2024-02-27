@@ -22,6 +22,7 @@ function EpisodeToyShowOrList(props){
     else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
 
     let [loaded, setLoaded] = useState(false);
+    //let [watchedItem, setWatchedItem] = useState(true);
     let [err, setError] = useState(false);
     let [episodes, setEpisodes] = useState([]);
     let [shows, setShows] = useState([]);
@@ -33,6 +34,7 @@ function EpisodeToyShowOrList(props){
         "season_number": -1,
         "episode_number": -1,
         "showname": "Show Name",
+        "watched": false,
         "showid": -1,
         "id": -1
     };
@@ -56,9 +58,15 @@ function EpisodeToyShowOrList(props){
     let [myepdataobj, setMyEpDataObj] = useState(myinitdataepobj);
     let mres = useRef(null);
     //let snmref = useRef(null);
+    
+    console.log("BEFORE USE EFFECT:");
+    console.log("props.uselist = " + props.uselist);
+    console.log("props.useinlist = " + props.useinlist);
+    console.log("props.usemy = " + props.usemy);
 
     cc.letMustBeBoolean(props.useinlist, "props.useinlist");
     cc.letMustBeBoolean(props.uselist, "props.uselist");
+    cc.letMustBeBoolean(props.usemy, "props.usemy");
 
     if (props.useinlist)
     {
@@ -67,9 +75,6 @@ function EpisodeToyShowOrList(props){
             throw new Error("epobj must be a defined episode object, not null!");
         }
     }
-    console.log("BEFORE USE EFFECT:");
-    console.log("props.uselist = " + props.uselist);
-    console.log("props.useinlist = " + props.useinlist);
     //console.log("mcurl = ", mcurl);
     
     function setErrorMessageState(errmsg)
@@ -185,32 +190,42 @@ function EpisodeToyShowOrList(props){
 
     function genAndSetNewDataStateObject(olddataobj, seasoninfoobj = null)
     {
-        if (props.typenm === "Episode")
+        let oldsnm = null;
+        let oldsid = -1;
+        if (props.typenm === "Episode" || props.typenm === "Toy")
         {
-            let mynwepobj = {"name": olddataobj.name,
-                "season_number": olddataobj.season_number,
-                "episode_number": olddataobj.episode_number,
-                "description": olddataobj.description,
-                "showname": olddataobj.show.name,
-                "showid": olddataobj.show.id,
-                "id": olddataobj.id
-            };
-            setMyEpDataObj(mynwepobj);
-            console.log("SETTING NEW VALUE FOR SHOWNAME TO: " + olddataobj.show.name);
-            setShowName(olddataobj.show.name);
-        }
-        else if (props.typenm === "Toy")
-        {
-            let mynwtoyobj = {"description": olddataobj.description,
-                "name": olddataobj.name,
-                "showname": olddataobj.show.name,
-                "price": olddataobj.price,
-                "showid": olddataobj.show.id,
-                "id": olddataobj.id
-            };
-            setMyToyDataObj(mynwtoyobj);
-            console.log("SETTING NEW VALUE FOR SHOWNAME TO: " + olddataobj.show.name);
-            setShowName(olddataobj.show.name);
+            console.log("props.usemy = " + props.usemy);
+            console.log("olddataobj = ", olddataobj);
+            oldsnm = olddataobj.show.name;
+            oldsid = olddataobj.show.id;
+
+            if (props.typenm === "Episode")
+            {
+                let mynwepobj = {"name": olddataobj.name,
+                    "season_number": olddataobj.season_number,
+                    "episode_number": olddataobj.episode_number,
+                    "description": olddataobj.description,
+                    "watched": olddataobj.watched,
+                    "showname": oldsnm,
+                    "showid": oldsid,
+                    "id": olddataobj.id
+                };
+                setMyEpDataObj(mynwepobj);
+            }
+            else if (props.typenm === "Toy")
+            {
+                let mynwtoyobj = {"description": olddataobj.description,
+                    "name": olddataobj.name,
+                    "price": olddataobj.price,
+                    "showname": oldsnm,
+                    "showid": oldsid,
+                    "id": olddataobj.id
+                };
+                setMyToyDataObj(mynwtoyobj);
+            }
+            else throw new Error("typenm must be Episode or Toy, but it was not!");
+            console.log("SETTING NEW VALUE FOR SHOWNAME TO: " + oldsnm);
+            setShowName(oldsnm);
         }
         else if (props.typenm === "Show")
         {
@@ -302,9 +317,19 @@ function EpisodeToyShowOrList(props){
             else if (props.typenm === "Show") baseurl = "" + onlyshowsurl;
             else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
             console.log("baseurl = " + baseurl);
+            console.log("props.usemy = " + props.usemy);
 
             let murl = "";
-            if (props.uselist) murl = "" + baseurl;
+            if (props.uselist)
+            {
+                if (props.usemy)
+                {
+                    if (props.typenm === "Episode") murl = "/my-episodes";
+                    else if (props.typenm === "Toy") murl = "/my-toys";
+                    else throw new Error("no page found for My-Type (" + props.typenm + ")!");
+                }
+                else murl = "" + baseurl;
+            }
             else
             {
                 if (props.typenm === "Show") murl = baseurl + "/" + params.showid;
@@ -361,17 +386,30 @@ function EpisodeToyShowOrList(props){
                             return;
                         }
                     }
+
+                    console.log("SETTING DATA FROM DATAOBJ!");
                     if (props.uselist)
                     {
-                        if (props.typenm === "Episode")
+                        if (props.typenm === "Episode" || props.typenm === "Toy")
                         {
-                            setShowName(data[0].show.name);
-                            setEpisodes(data);
-                        }
-                        else if (props.typenm === "Toy")
-                        {
-                            setShowName(data[0].show.name);
-                            setToys(data);
+                            if (props.usemy);
+                            else setShowName(data[0].show.name);
+                            
+                            if (props.typenm === "Episode")
+                            {
+                                if (props.usemy)
+                                {
+                                    let myinitepslist = data.map((item) => {
+                                        let mynwitem = {...item};
+                                        mynwitem["watched"] = true;
+                                        return mynwitem;
+                                    });
+                                    setEpisodes(myinitepslist);
+                                }
+                                else setEpisodes(data);
+                            }
+                            else if (props.typenm === "Toy") setToys(data);
+                            else throw new Error("typenm must be Episode or Toy, but it was not!");
                         }
                         else if (props.typenm === "Show") setShows(data);
                         else
@@ -387,11 +425,56 @@ function EpisodeToyShowOrList(props){
                             console.log("DATA TYPE IS SHOW!");
                             genAndSetNewDataStateObject(data, getAndGenSeasonsInfoObject(data));
                         }
-                        else genAndSetNewDataStateObject(data, null);
+                        else
+                        {
+                            console.log("props.usemy = " + props.usemy);
+                            if (props.usemy)
+                            {
+                                if (props.typenm === "Episode")
+                                {
+                                    genAndSetNewDataStateObject(data.episode, null);
+                                }
+                                else if (props.typenm === "Toy")
+                                {
+                                    genAndSetNewDataStateObject(data.toy, null);
+                                }
+                                else throw new Error("invalid typenm found and used here!");
+                            }
+                            else
+                            {
+                                genAndSetNewDataStateObject(data, null);
+                                if (props.simpusrobj["instatus"] && props.typenm === "Episode")
+                                {
+                                    console.log("getting watched data now!");
+                                    console.log("props.uselist = " + props.uselist);
+                                    console.log("props.useinlist = " + props.useinlist);
+
+                                    let myconfigobj = {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            "Accept": "application/json"
+                                        },
+                                        body: JSON.stringify({
+                                            "episode_id": data.id,
+                                            "user_id": props.simpusrobj.id
+                                        })
+                                    };
+                                    fetch("/my-episodes", myconfigobj).then((res) => res.json())
+                                    .then((odata) => {
+                                        console.log(odata);
+                                    }).catch((merr) => {
+                                        console.error("there was an error adding watched data to " +
+                                            "the server!");
+                                        console.error(merr);
+                                    });
+                                }
+                                //else;//do nothing
+                            }
+                        }
                     }
                 }
                 setLoaded(true);
-                //return data;
             }).catch((ex) => {
                 console.error("there was an error loading the episode data!");
                 console.error(ex);
@@ -406,12 +489,29 @@ function EpisodeToyShowOrList(props){
         }
         else
         {
+            console.log("SETTING DATA FROM EPOBJ!");
             if (props.typenm === "Show")
             {
                 console.log("DATA TYPE IS SHOW!");
                 genAndSetNewDataStateObject(props.epobj, getAndGenSeasonsInfoObject(props.epobj));
             }
-            else genAndSetNewDataStateObject(props.epobj, null);
+            else
+            {
+                console.log("props.usemy = " + props.usemy);
+                if (props.usemy)
+                {
+                    if (props.typenm === "Episode")
+                    {
+                        genAndSetNewDataStateObject(props.epobj.episode, null);
+                    }
+                    else if (props.typenm === "Toy")
+                    {
+                        genAndSetNewDataStateObject(props.epobj.toy, null);
+                    }
+                    else throw new Error("invalid typenm found and used here!");
+                }
+                else genAndSetNewDataStateObject(props.epobj, null);
+            }
             setLoaded(true);
         }
     }, [params, cloc, loaded, showname, err, props.epobj, props.useinlist, props.uselist,
@@ -429,7 +529,6 @@ function EpisodeToyShowOrList(props){
     console.log("myepdataobj = ", myepdataobj);
     console.log("props.location = ", props.location);
     console.log("cloc = ", cloc);
-    //console.log("props.smnref = " + props.smnref);
     
     let resetState = false;
     if (cloc === undefined || cloc === null)
@@ -494,6 +593,8 @@ function EpisodeToyShowOrList(props){
         let hlist = null;
         if (props.typenm === "Episode")
         {
+            console.log("useindivdisp = " + useindivdisp);
+
             let shortephlist = ["Name", "Season #", "Episode #", "Watch Link", "Description"];
             let longephlist = ["Show Name", "Name", "Season #", "Episode #", "Watch Link",
                 "Description"];
@@ -569,10 +670,11 @@ function EpisodeToyShowOrList(props){
             else kynm = "swiderrorty";
         }
         else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+        console.log("props.usemy = " + props.usemy);
 
         return (<tr key={kynm} className="border">
             <td className="redbgclrborder">{itemname}</td>
-            {(props.typenm === "Toy") ?
+            {(props.typenm === "Toy" || props.usemy) ?
             <td className="redbgclrborder">{myinitdatatoyobj.showname}</td>: null}
             {(props.typenm === "Toy") ? null :
                 <>
@@ -631,11 +733,31 @@ function EpisodeToyShowOrList(props){
         //if headername has Description in it, then use border classname
         //if headername has Link in it, then use border classname
         //default classname is border
+        console.log("props.usemy = " + props.usemy);
 
-        let myhlist = getHeadersForType(false);
+        let myhlist = getHeadersForType(props.usemy);
 
-        let mytds = myhlist.map((mstr) =>
+        let usemytd = null;
+        if (props.usemy)
+        {
+            usemytd = (<td key={"watchalleps"}><input type="checkbox" checked={props.watchall}
+            onChange={(event) => {
+                console.log(event);
+                props.setWatchAll(event.target.checked)}} /></td>);
+        }
+
+        let myotds = myhlist.map((mstr) =>
             <td key={mstr} className={getCSSClassNameForHeader(mstr, false)}>{mstr}</td>);
+        
+        let mytds = null;
+        if (props.usemy)
+        {
+            mytds = [usemytd];
+            myotds.forEach((item) => {
+                mytds.push(item);
+            });
+        }
+        else mytds = myotds;
 
         return (<tr className="border">{mytds}</tr>);
     }
@@ -671,8 +793,9 @@ function EpisodeToyShowOrList(props){
     {
         //need to know the headers
         //needs to know if it is using the align class or not
+        console.log("props.usemy = " + props.usemy);
 
-        let myhlist = getHeadersForType(false);
+        let myhlist = getHeadersForType(props.usemy);
         console.log("myhlist = ", myhlist);
 
         //get the dataobj from state
@@ -687,7 +810,42 @@ function EpisodeToyShowOrList(props){
         //console.warn("mydataobj = ", mydataobj);
         //console.warn("typenm = " + props.typenm);
 
-        let mytds = myhlist.map((mstr) =>
+        let usemytd = null;
+        if (props.usemy)
+        {
+            usemytd = (<td key={"ckbox" + props.epobj.id}>{<input type="checkbox"
+                checked={props.epobj.watched} onChange={(event) => {
+                    console.log(event);
+                    console.log(event.target.checked);
+                    console.log("props.epobj = ", props.epobj);
+                    console.error("NEED TO DO SOMETHING HERE!");
+                    // if (event.target.checked)
+                    // {
+                    //     //props.setEpisode(?);
+                    // }
+                    // else
+                    // {
+                    //     let myconfigobj = {
+                    //         method: "DELETE",
+                    //         headers: {
+                    //             "Content-Type": "application/json",
+                    //             "Accept": "application/json"
+                    //         },
+                    //         body: JSON.stringify(props.epobj)
+                    //     };
+                    //     fetch(props.location.pathname + "/" + props.epobj.episode.id, myconfigobj)
+                    //     .then((res) => res.json()).then((data) => {
+                    //         console.log(data);
+                    //         //props.setWatchedItems(?);
+                    //     }).catch((merr) => {
+                    //         console.error("there was an error unwatching an episode!");
+                    //         console.error(merr);
+                    //     });
+                    // }
+                }} />}</td>);
+        }
+
+        let myotds = myhlist.map((mstr) =>
         {
             console.log("mstr = " + mstr);
             
@@ -812,6 +970,16 @@ function EpisodeToyShowOrList(props){
 
             return (<td key={fcolkynm} className={clsnm}>{itemval}</td>);
         });
+
+        let mytds = null;
+        if (props.usemy)
+        {
+            mytds = [usemytd];
+            myotds.forEach((item) => {
+                mytds.push(item);
+            });
+        }
+        else mytds = myotds;
 
         let kynmidnm = "";
         if (params.showid === undefined || params.showid === null)
@@ -1073,7 +1241,11 @@ function EpisodeToyShowOrList(props){
                 //console.warn("IN MYEPS NO ERR!");
                 //console.warn("*kynm = " + kynm);
                 return (<EpisodeToyShowOrList key={kynm} typenm={props.typenm} uselist={false}
-                    useinlist={true} epobj={ep} location={props.location} />);
+                    useinlist={true} epobj={ep} location={props.location} usemy={props.usemy}
+                    watchall={props.watchall} setWatchAll={props.setWatchAll}
+                    watcheditems={props.watcheditems}
+                    setWatchedItems={props.setWatchedItems}
+                    simpusrobj={props.simpusrobj} />);
             });
         }
         
@@ -1102,7 +1274,9 @@ function EpisodeToyShowOrList(props){
         if (props.typenm === "Episode")
         {
             //console.log("FINAL myepdataobj = ", myepdataobj);
-            myhitemstr = "" + props.typenm + "s For Show: ";
+            console.log("props.usemy = " + props.usemy);
+            if (props.usemy) myhitemstr = "My " + props.typenm + "s";
+            else myhitemstr = "" + props.typenm + "s For Show: ";
         }
         else if (props.typenm === "Toy")
         {
@@ -1126,12 +1300,13 @@ function EpisodeToyShowOrList(props){
             }
         }
 
+
         //toys (for all shows, so no show name) vs
         //toys for show: show name
         //episodes for show: show name
         //shows
         return (<div style={{backgroundColor: mybgcolor}}>
-            <h1>{myhitemstr}{mysnmitemval}</h1>
+            <h1>{myhitemstr}{props.usemy ? null: mysnmitemval}</h1>
             <table className="border">
                 <thead>{mytds}</thead>
                 <tbody>{myeps}</tbody>

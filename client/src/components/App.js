@@ -9,6 +9,8 @@ import SignUpLoginPreferences from "./SignUpLoginPreferences";
 function App() {
   //let history = useHistory();
   let [user, setUser] = useState(null);
+  let [checkitems, setCheckItems] = useState([]);
+  let [watchall, setWatchAll] = useState(true);
 
   function getSimplifiedUserObj()
   {
@@ -16,16 +18,19 @@ function App() {
     let lgi = false;
     let alv = 0;
     let pswd = "";
+    let usrid = -1;
     if (user === undefined || user === null) musrnm = "not logged in";
     else
     {
       musrnm = user.name;
       alv = user.access_level;
       lgi = true;
+      usrid = user.id;
       pswd = user.password;
     }
 
-    return {"username": musrnm, "access_level": alv, "instatus": lgi, "password": pswd};
+    return {"id": usrid, "username": musrnm, "access_level": alv, "instatus": lgi,
+      "password": pswd};
   }
   function getUserName()
   {
@@ -40,7 +45,7 @@ function App() {
     return getSimplifiedUserObj()["access_level"];
   }
 
-  function genEpsShowsToysComponent(props, mky, mtype, uselist, useinlist, incnvbar)
+  function genEpsShowsToysComponent(props, mky, mtype, uselist, useinlist, incnvbar, usemy=false)
   {
     const cc = new CommonClass();
     cc.letMustBeDefinedAndNotNull(props, "props");
@@ -49,14 +54,26 @@ function App() {
     cc.letMustBeBoolean(uselist, "uselist");
     cc.letMustBeBoolean(useinlist, "useinlist");
     cc.letMustBeBoolean(incnvbar, "incnvbar");
+    cc.letMustBeBoolean(usemy, "usemy");
+
+    let simpusrobj = getSimplifiedUserObj();
+    console.log("usemy = " + usemy);
+
+    if (usemy)
+    {
+      if (simpusrobj["instatus"]);
+      else return (<Redirect to="/login" />);
+    }
 
     let myloc = props.location;
     console.log("myloc = ", myloc);
 
     return (<>
-      {(incnvbar) ? <Navbar simpusrobj={getSimplifiedUserObj()} /> : null}
+      {(incnvbar) ? <Navbar simpusrobj={simpusrobj} /> : null}
       <EpisodeToyShowOrList key={mky} typenm={mtype} uselist={uselist} useinlist={useinlist}
-        epobj={null} location={myloc} />
+        epobj={null} location={myloc} usemy={usemy} checkitems={checkitems}
+        setCheckItems={setCheckItems} watchall={watchall} setWatchAll={setWatchAll}
+        simpusrobj={simpusrobj} />
     </>);
   }
 
@@ -73,25 +90,23 @@ function App() {
       <p>If you have the appropriate access level, you can create new shows, episodes, and toys.</p>
       </Route>
       <Route exact path="/shows" render={(props) =>
-        genEpsShowsToysComponent(props, "swfromapp", "Show", true, false, true)} />
+        genEpsShowsToysComponent(props, "swfromapp", "Show", true, false, true, false)} />
       <Route path="/shows/:showid/toys/:id" render={(props) =>
-        genEpsShowsToysComponent(props, "tyfromapp", "Toy", false, false, true)} />
+        genEpsShowsToysComponent(props, "tyfromapp", "Toy", false, false, true, false)} />
       <Route path="/shows/:showid/toys" render={(props) =>
-        genEpsShowsToysComponent(props, "tyfromapp", "Toy", true, false, true)} />
+        genEpsShowsToysComponent(props, "tyfromapp", "Toy", true, false, true, false)} />
       <Route path="/shows/:showid/episodes/:id" render={(props) =>
-        genEpsShowsToysComponent(props, "epfromapp", "Episode", false, false, true)} />
+        genEpsShowsToysComponent(props, "epfromapp", "Episode", false, false, true, false)} />
       <Route path="/shows/:showid/episodes" render={(props) =>
-        genEpsShowsToysComponent(props, "epfromapp", "Episode", true, false, true)} />
+        genEpsShowsToysComponent(props, "epfromapp", "Episode", true, false, true, false)} />
       <Route path="/shows/:showid" render={(props) =>
-        genEpsShowsToysComponent(props, "swfromapp", "Show", false, false, true)} />
+        genEpsShowsToysComponent(props, "swfromapp", "Show", false, false, true, false)} />
       <Route exact path="/toys" render={(props) =>
-        genEpsShowsToysComponent(props, "tyfromapp", "Toy", true, false, true)} />
+        genEpsShowsToysComponent(props, "tyfromapp", "Toy", true, false, true, false)} />
       <Route path="/toys/:id" render={(props) =>
-        genEpsShowsToysComponent(props, "tyfromapp", "Toy", false, false, true)} />
-      <Route exact path="/my-episodes">
-        <Navbar simpusrobj={getSimplifiedUserObj()} />
-        <h1>My Episodes</h1>
-      </Route>
+        genEpsShowsToysComponent(props, "tyfromapp", "Toy", false, false, true, false)} />
+      <Route exact path="/my-episodes" render={(props) =>
+        genEpsShowsToysComponent(props, "epfromapp", "Episode", true, false, true, true)} />
       <Route exact path="/my-toys">
         <Navbar simpusrobj={getSimplifiedUserObj()} />
         <h1>My Toys</h1>
