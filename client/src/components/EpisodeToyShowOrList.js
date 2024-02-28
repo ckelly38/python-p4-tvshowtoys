@@ -752,14 +752,24 @@ function EpisodeToyShowOrList(props){
             console.log("mky = " + mky);
             console.log("mykynm = " + mykynm);
             console.log("props.epobj = ", props.epobj);
+            console.log("props.usemy = " + props.usemy);
 
             let itemval = null;
             if (mky === undefined || mky === null || mky.length < 1)
             {
                 if (mstr === "Watch Link")
                 {
-                    let mlval = "/shows/" + params.showid + "/episodes/" +
-                        props.epobj.episode_number;
+                    let mlval = "";
+                    if (props.usemy)
+                    {
+                        mlval = "/shows/" + props.epobj.episode.show.id + "/episodes/" +
+                            props.epobj.episode.episode_number;
+                    }
+                    else
+                    {
+                        mlval = "/shows/" + params.showid + "/episodes/" +
+                            props.epobj.episode_number;
+                    }
                     //console.warn("*mylnkky = " + (mykynm + props.epobj.id));
                     itemval = (<Link key={mykynm + props.epobj.id}
                                     to={mlval}>Watch It Now</Link>);
@@ -821,8 +831,33 @@ function EpisodeToyShowOrList(props){
                     else epobky = "id";
                     console.log("epobky = " + epobky);
 
-                    let mlval = "" + props.location.pathname + "/" + props.epobj[epobky];
-                    let mylnkky = "" + props.typenm.toLowerCase() + "namelink" + props.epobj.id;
+                    let mlval = "";
+                    let mylnkky = "";
+                    if (props.usemy)
+                    {
+                        if (props.typenm === "Episode")
+                        {
+                            epobky = "episode";
+                            mlval = "/shows/" + props.epobj[epobky].show.id + "/episodes/" +
+                                props.epobj[epobky].episode_number;
+                        }
+                        else if (props.typenm === "Toy")
+                        {
+                            epobky = "toy";
+                            mlval = "/shows/" + props.epobj[epobky].show.id + "/toys/" +
+                                props.epobj[epobky].toy_number;
+                        }
+                        else throw new Error("typenm must be Episode or Toy, but it was not!");
+                        console.log("NEW epobky = " + epobky);
+
+                        mylnkky = "" + props.typenm.toLowerCase() + "namelink" +
+                            props.epobj[epobky].id;
+                    }
+                    else
+                    {
+                        mlval = "" + props.location.pathname + "/" + props.epobj[epobky];
+                        mylnkky = "" + props.typenm.toLowerCase() + "namelink" + props.epobj.id;
+                    }
                     //console.warn("*mylnkky = " + mylnkky);
                     itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);
                 }
