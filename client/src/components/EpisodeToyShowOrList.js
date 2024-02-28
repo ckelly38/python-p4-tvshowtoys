@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Switch, Route, Link, useParams, useHistory } from "react-router-dom";
+import { Switch, Route, Link, useParams, useHistory, Redirect } from "react-router-dom";
 import CommonClass from "./commonclass";
 
 function EpisodeToyShowOrList(props){
     const params = useParams();
-    //let history = useHistory();
+    let history = useHistory();
 
     let [cloc, setCLoc] = useState(null);
     const cc = new CommonClass();
@@ -280,6 +280,13 @@ function EpisodeToyShowOrList(props){
                                     });
                                     console.warn("SET EPISODES WITH: ", myinitepslist);
                                     setEpisodes(myinitepslist);
+
+                                    if (cc.isStringEmptyNullOrUndefined(myinitepslist))
+                                    {
+                                        setErrorMessageState("No Episodes on the watched list!");
+                                        setError(true);
+                                    }
+                                    //else;//do nothing
                                 }
                                 else setEpisodes(data);
                             }
@@ -406,24 +413,28 @@ function EpisodeToyShowOrList(props){
     console.log("props.location = ", props.location);
     console.log("cloc = ", cloc);
     
-    let resetState = false;
+    let resetCompState = false;
     if (cloc === undefined || cloc === null)
     {
         if (props.location === undefined || props.location === null);
-        else resetState = true;
+        else resetCompState = true;
     }
     else
     {
-        if (props.location === undefined || props.location === null) resetState = true;
+        if (props.location === undefined || props.location === null) resetCompState = true;
         else
         {
             if (props.location.pathname === cloc.pathname);
-            else resetState = true;
+            else resetCompState = true;
         }
     }
-    console.log("resetState = " + resetState);
+    console.log("resetCompState = " + resetCompState);
 
-    if (resetState)
+    if (resetCompState) resetState();
+    //else;//do nothing
+    console.log("AFTER LOCATION SET!");
+
+    function resetState()
     {
         console.log("BEGINNNING RESETTING STATE:");
         setLoaded(false);
@@ -440,9 +451,6 @@ function EpisodeToyShowOrList(props){
         setCLoc(props.location);
         console.log("DONE RESETTING STATE!");
     }
-    //else;//do nothing
-    console.log("AFTER LOCATION SET!");
-
     
     function getDataObjectFromType()
     {
@@ -499,9 +507,11 @@ function EpisodeToyShowOrList(props){
         console.log("props.usemy = " + props.usemy);
 
         return (<tr key={kynm} className="border">
-            <td className="redbgclrborder">{itemname}</td>
+            {(props.usemy) ? <td className="redbgclrborder">Cannot Remove It!</td>:
+            <td className="redbgclrborder">{itemname}</td>}
             {(props.typenm === "Toy" || props.usemy) ?
             <td className="redbgclrborder">{myinitdatatoyobj.showname}</td>: null}
+            {(props.usemy) ? <td className="redbgclrborder">{itemname}</td>: null}
             {(props.typenm === "Toy") ? null :
                 <>
                     <td className="redbgclrtxtcntrborder">{cntrnuma}</td>
@@ -532,13 +542,7 @@ function EpisodeToyShowOrList(props){
         let myhlist = cc.getHeadersForType(props.typenm, props.usemy);
 
         let usemytd = null;
-        if (props.usemy)
-        {
-            usemytd = (<td key={"watchalleps"}><input type="checkbox" checked={props.watchall}
-            onChange={(event) => {
-                console.log(event);
-                props.setWatchAll(event.target.checked)}} /></td>);
-        }
+        if (props.usemy) usemytd = (<td key={"remeps"}>Remove {props.typenm}</td>);
 
         let myotds = myhlist.map((mstr) =>
             <td key={mstr} className={cc.getCSSClassNameForHeader(mstr, false)}>{mstr}</td>);
@@ -572,39 +576,42 @@ function EpisodeToyShowOrList(props){
         let usemytd = null;
         if (props.usemy)
         {
-            usemytd = (<td key={"ckbox" + props.epobj.id}>{<input type="checkbox"
-                checked={props.epobj.watched} onChange={(event) => {
+            usemytd = (<td key={"ckbox" + props.epobj.id}>{<button onClick={(event) => {
                     console.log(event);
-                    console.log(event.target.checked);
                     console.log("props.epobj = ", props.epobj);
-                    console.error("NEED TO DO SOMETHING HERE!");
-                    // if (event.target.checked)
-                    // {
-                    //     //props.setEpisode(?);
-                    // }
-                    // else
-                    // {
-                    //     let myconfigobj = {
-                    //         method: "DELETE",
-                    //         headers: {
-                    //             "Content-Type": "application/json",
-                    //             "Accept": "application/json"
-                    //         },
-                    //         body: JSON.stringify(props.epobj)
-                    //     };
-                    //     let myurl = "" + props.location.pathname + "/" +
-                    //          props.epobj.episode.id;
-                    //     console.log("myurl = " + myurl);
-                    //     fetch(myurl, myconfigobj)
-                    //     .then((res) => res.json()).then((data) => {
-                    //         console.log(data);
-                    //         //props.setWatchedItems(?);
-                    //     }).catch((merr) => {
-                    //         console.error("there was an error unwatching an episode!");
-                    //         console.error(merr);
-                    //     });
-                    // }
-                }} />}</td>);
+                    let myconfigobj = {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        body: JSON.stringify(props.epobj)
+                    };
+                    let myurl = "" + props.location.pathname + "/" +
+                         props.epobj.episode.id;
+                    console.log("myurl = " + myurl);
+                    fetch(myurl, myconfigobj)
+                    .then((res) => res.json()).then((data) => {
+                        console.log(data);
+                        let dkys = Object.keys(data);
+                        console.log(dkys);
+                        for (let n = 0; n < dkys.length; n++)
+                        {
+                            if (dkys[n] === "error")
+                            {
+                                setErrorMessageState(data["error"]);
+                                setError(true);
+                                return;
+                            }
+                        }
+                        //resetState();//did not work
+                        //return (<Redirect to="/redirectme" />);//did not work
+                        history.push("/redirectme");//works due to histor.goBack() on route.
+                    }).catch((merr) => {
+                        console.error("there was an error unwatching an episode!");
+                        console.error(merr);
+                    });
+                }}>Unwatch {props.typenm}</button>}</td>);
         }
 
         let myotds = myhlist.map((mstr) =>

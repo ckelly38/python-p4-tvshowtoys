@@ -77,3 +77,8 @@
   display: flex;
   flex-direction: row;
 }
+
+/*https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_images/Using_CSS_gradients*/
+.horizontal-gradient {
+  background: linear-gradient(to right, cyan, lime, yellow, orange, pink);
+}

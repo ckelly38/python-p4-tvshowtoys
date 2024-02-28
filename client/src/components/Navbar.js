@@ -20,13 +20,16 @@ function Navbar({simpusrobj}) {
     return (<div className="navbarcls">
         <div className="homelinkcls"><Link to="/">Home</Link></div>
         <div className="showslinkcls"><Link to="/shows">Shows</Link></div>
-        {(notloggedin || nocreateaccess) ? null : <button onClick={null}>New Show</button>}
+        {(notloggedin || nocreateaccess) ? null :
+          <Link className={"horizontal-gradient"} exact to="/shows/new">New Show</Link>}
         <div className="epslinkcls">
           <Link to={"/shows/" + mysid + "/episodes"}>Episodes</Link>
         </div>
-        {(notloggedin || nocreateaccess) ? null : <button onClick={null}>New Episode</button>}
+        {(notloggedin || nocreateaccess) ? null :
+          <button onClick={null}>New Episode</button>}
         <div className="toyslinkcls"><Link to="/toys">Toys</Link></div>
-        {(notloggedin || nocreateaccess) ? null : <button onClick={null}>New Toy</button>}
+        {(notloggedin || nocreateaccess) ? null :
+          <Link className={"horizontal-gradient"} exact to="/toys/new">New Toy</Link>}
         <div className="toysforshowlinkcls">
           <Link to={"/shows/" + mysid + "/toys"}>Toys For Show</Link>
         </div>

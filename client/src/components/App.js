@@ -7,7 +7,7 @@ import CommonClass from "./commonclass";
 import SignUpLoginPreferences from "./SignUpLoginPreferences";
 
 function App() {
-  //let history = useHistory();
+  let history = useHistory();
   let [user, setUser] = useState(null);
   let [checkitems, setCheckItems] = useState([]);
   let [watchall, setWatchAll] = useState(true);
@@ -71,9 +71,8 @@ function App() {
     return (<>
       {(incnvbar) ? <Navbar simpusrobj={simpusrobj} /> : null}
       <EpisodeToyShowOrList key={mky} typenm={mtype} uselist={uselist} useinlist={useinlist}
-        epobj={null} location={myloc} usemy={usemy} checkitems={checkitems}
-        setCheckItems={setCheckItems} watchall={watchall} setWatchAll={setWatchAll}
-        simpusrobj={simpusrobj} />
+        epobj={null} location={myloc} usemy={usemy} simpusrobj={simpusrobj} watchall={watchall}
+        checkitems={checkitems} setCheckItems={setCheckItems} setWatchAll={setWatchAll} />
     </>);
   }
 
@@ -133,6 +132,12 @@ function App() {
             <SignUpLoginPreferences typenm="SignUp"  setuser={setUser}
               simpusrobj={getSimplifiedUserObj()} /></>}
       </Route>
+      <Route exact path="/redirectme" render={(props) => {
+        console.log("history = ", history);
+        return history.goBack();
+        //THIS HELPS TRIGGER A RERENDER WITHOUT SETTING UNNECESSARY STATE OUTSIDE OF THE COMPONENT
+      }} />
+      <Route path="*"><Redirect to="/" /></Route>
     </Switch>
   </div>);
 }
