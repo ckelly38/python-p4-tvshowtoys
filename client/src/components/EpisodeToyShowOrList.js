@@ -18,8 +18,9 @@ function EpisodeToyShowOrList(props){
 
     cc.letMustBeDefinedAndNotNull(props.typenm, "props.typenm");
 
+    const invalidTypeErrMsg = "typenm must be Episode, Toy, or Show, but it was not!";
     if (props.typenm === "Episode" || props.typenm === "Toy" || props.typenm === "Show");
-    else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+    else throw new Error(invalidTypeErrMsg);
 
     let [loaded, setLoaded] = useState(false);
     //let [watchedItem, setWatchedItem] = useState(true);
@@ -28,31 +29,9 @@ function EpisodeToyShowOrList(props){
     let [shows, setShows] = useState([]);
     let [toys, setToys] = useState([]);
     let [showname, setShowName] = useState("Show Name");
-    //let [currentURL, setMyCurrentURL] = useState(mcurl);
-    let myinitdataepobj = {"description": "description",
-        "name": "loading...",
-        "season_number": -1,
-        "episode_number": -1,
-        "showname": "Show Name",
-        "watched": false,
-        "showid": -1,
-        "id": -1
-    };
-    let myinitdatatoyobj = {"description": "description",
-        "name": "loading...",
-        "showname": "Show Name",
-        "price": -1,
-        "showid": -1,
-        "id": -1
-    };
-    let myinitdatashowobj = {"description": "description",
-        "name": "loading...",
-        "numseasons": -1,
-        "numepisodesperseason": -1,
-        "totalepisodes": -1,
-        "showid": -1,
-        "id": -1
-    };
+    let myinitdataepobj = cc.getAndGenInitDataObjectForType("Episode");
+    let myinitdatatoyobj = cc.getAndGenInitDataObjectForType("Toy");
+    let myinitdatashowobj = cc.getAndGenInitDataObjectForType("Show");
     let [myshowdataobj, setMyShowDataObj] = useState(myinitdatashowobj);
     let [mytoydataobj, setMyToyDataObj] = useState(myinitdatatoyobj);
     let [myepdataobj, setMyEpDataObj] = useState(myinitdataepobj);
@@ -96,95 +75,7 @@ function EpisodeToyShowOrList(props){
             mynwepobj["description"] = errmsg;
             setMyShowDataObj(mynwepobj);
         }
-        else
-        {
-            throw new Error("typenm must be Episode, Toy, or Show, " +
-                "but it was not!");
-        }
-    }
-
-    //if dataobj is null or undefined it returns a default object
-    //instead of null or throwing an error
-    function getAndGenSeasonsInfoObject(dataobj)
-    {
-        console.log("dataobj = ", dataobj);
-        if (dataobj === undefined || dataobj === null)
-        {
-            return {"numseasons": -1,
-                "totalepisodes": -1,
-                "numepisodesperseason": -1
-            };
-        }
-        //else;//do nothing
-        
-        let teps = -1;
-        if (dataobj.episodes === undefined || dataobj.episodes === null) teps = 0;
-        else teps = dataobj.episodes.length;
-        console.log("teps = " + teps);
-        
-        let numseasons = -1;
-        if (teps === 0) numseasons = 0;
-        else if (teps > 0)
-        {
-            if (dataobj.episodes === undefined || dataobj.episodes === null)
-            {
-                throw new Error("the teps was more than zero, but there are no " +
-                    "episodes in the object, so it should have been zero!");
-            }
-            //else;//do nothing
-
-            let mymaxsnum = 0;
-            let mymaxsnumi = -1;
-            for (let n = 0; n < dataobj.episodes.length; n++)
-            {
-                let cepsnnum = dataobj.episodes[n].season_number;
-                if (mymaxsnumi < 0)
-                {
-                    mymaxsnum = cepsnnum;
-                    mymaxsnumi = n;
-                }
-                else
-                {
-                    if (mymaxsnum < cepsnnum)
-                    {
-                        mymaxsnum = cepsnnum;
-                        mymaxsnumi = n;
-                    }
-                    //else;//do nothing
-                }
-            }//end of n for loop
-            console.log("mymaxsnum = " + mymaxsnum);
-            console.log("mymaxsnumi = " + mymaxsnumi);
-
-            if (mymaxsnumi < 0 || mymaxsnum < 1)
-            {
-                throw new Error("the teps was more than zero, but there were either " +
-                    "no eps in the object OR there was no valid season number on any " +
-                    "of the episodes. The season number must be greater than zero!");
-            }
-            else numseasons = mymaxsnum;
-        }
-        else throw new Error("teps must be a positive or zero integer!");
-        console.log("numseasons = " + numseasons);
-
-        let rmndr = (teps % numseasons);
-        let numepsperseason = (teps / numseasons);
-        console.log("numepsperseason = " + numepsperseason);
-        console.log("rmndr = " + rmndr);
-
-        let fnumepsperseason = -1;
-        if (rmndr === 0) fnumepsperseason = numepsperseason;
-        else fnumepsperseason = Math.round(numepsperseason);
-        //round up if it is bigger, round down if smaller
-        console.log("fnumepsperseason = " + fnumepsperseason);
-        
-        let mysnsobj = {"numseasons": numseasons,
-            "totalepisodes": teps,
-            "numepisodesperseason": fnumepsperseason
-        };
-        console.log("mysnsobj = ", mysnsobj);
-        
-        return mysnsobj;
+        else throw new Error(invalidTypeErrMsg);
     }
 
     function genAndSetNewDataStateObject(olddataobj, seasoninfoobj = null)
@@ -231,7 +122,7 @@ function EpisodeToyShowOrList(props){
             let msnobj = null;
             if (seasoninfoobj === undefined || seasoninfoobj === null)
             {
-                msnobj = getAndGenSeasonsInfoObject(olddataobj);
+                msnobj = cc.getAndGenSeasonsInfoObject(olddataobj);
             }
             else msnobj = seasoninfoobj;
 
@@ -248,7 +139,7 @@ function EpisodeToyShowOrList(props){
             //console.log("SETTING NEW VALUE FOR SHOWNAME TO: " + olddataobj.name);
             //setShowName(olddataobj.name);
         }
-        else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+        else throw new Error(invalidTypeErrMsg);
         setLoaded(true);
     }
 
@@ -293,14 +184,11 @@ function EpisodeToyShowOrList(props){
             else if (props.typenm === "Toy")
             {
                 if (cc.isInteger(params.showid)) baseurl += "/toys";//, "params.showid"
-                else if (params.showid === undefined || params.showid === null)
-                {
-                    baseurl = "" + onlytoysurl;
-                }
+                else if (cc.isItemNullOrUndefined(params.showid)) baseurl = "" + onlytoysurl;
                 else baseurl += "/toys";
             }
             else if (props.typenm === "Show") baseurl = "" + onlyshowsurl;
-            else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+            else throw new Error(invalidTypeErrMsg);
             console.log("baseurl = " + baseurl);
             console.log("props.usemy = " + props.usemy);
 
@@ -356,7 +244,7 @@ function EpisodeToyShowOrList(props){
                     if (props.typenm === "Episode") setEpisodes([]);
                     else if (props.typenm === "Toy") setToys([]);
                     else if (props.typenm === "Show") setShows([]);
-                    else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+                    else throw new Error(invalidTypeErrMsg);
                 }
                 else
                 {
@@ -384,11 +272,13 @@ function EpisodeToyShowOrList(props){
                             {
                                 if (props.usemy)
                                 {
+                                    console.warn("INIT DATA = ", data);
                                     let myinitepslist = data.map((item) => {
                                         let mynwitem = {...item};
                                         mynwitem["watched"] = true;
                                         return mynwitem;
                                     });
+                                    console.warn("SET EPISODES WITH: ", myinitepslist);
                                     setEpisodes(myinitepslist);
                                 }
                                 else setEpisodes(data);
@@ -400,18 +290,15 @@ function EpisodeToyShowOrList(props){
                             }
                         }
                         else if (props.typenm === "Show") setShows(data);
-                        else
-                        {
-                            throw new Error("typenm must be Episode, Toy, or Show, " +
-                                "but it was not!");
-                        }
+                        else throw new Error(invalidTypeErrMsg);
                     }
                     else
                     {
                         if (props.typenm === "Show")
                         {
                             console.log("DATA TYPE IS SHOW!");
-                            genAndSetNewDataStateObject(data, getAndGenSeasonsInfoObject(data));
+                            genAndSetNewDataStateObject(data,
+                                cc.getAndGenSeasonsInfoObject(data));
                         }
                         else
                         {
@@ -481,7 +368,8 @@ function EpisodeToyShowOrList(props){
             if (props.typenm === "Show")
             {
                 console.log("DATA TYPE IS SHOW!");
-                genAndSetNewDataStateObject(props.epobj, getAndGenSeasonsInfoObject(props.epobj));
+                genAndSetNewDataStateObject(props.epobj,
+                    cc.getAndGenSeasonsInfoObject(props.epobj));
             }
             else
             {
@@ -607,7 +495,7 @@ function EpisodeToyShowOrList(props){
             }
             else kynm = "swiderrorty";
         }
-        else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+        else throw new Error(invalidTypeErrMsg);
         console.log("props.usemy = " + props.usemy);
 
         return (<tr key={kynm} className="border">
@@ -629,7 +517,7 @@ function EpisodeToyShowOrList(props){
             {(props.typenm === "Episode") ? <td className="redbgclrborder">Watch Link</td>: null}
             <td className="redbgclrborder" dangerouslySetInnerHTML={createMarkUp()}></td></tr>
         );
-    }
+    }//END OF GEN ERROR ITEM ON LIST()
 
     function genHeaderRowForList()
     {
@@ -759,17 +647,19 @@ function EpisodeToyShowOrList(props){
             {
                 if (mstr === "Watch Link")
                 {
-                    let mlval = "";
+                    let mysid = -1;
+                    let myepnum = -1;
                     if (props.usemy)
                     {
-                        mlval = "/shows/" + props.epobj.episode.show.id + "/episodes/" +
-                            props.epobj.episode.episode_number;
+                        mysid = props.epobj.episode.show.id;
+                        myepnum = props.epobj.episode.episode_number;
                     }
                     else
                     {
-                        mlval = "/shows/" + params.showid + "/episodes/" +
-                            props.epobj.episode_number;
+                        mysid = params.showid;
+                        myepnum = props.epobj.episode_number;
                     }
+                    let mlval = "/shows/" + mysid + "/episodes/" + myepnum;
                     //console.warn("*mylnkky = " + (mykynm + props.epobj.id));
                     itemval = (<Link key={mykynm + props.epobj.id}
                                     to={mlval}>Watch It Now</Link>);
@@ -816,11 +706,7 @@ function EpisodeToyShowOrList(props){
                             if (props.typenm === "Show") epobky = "id";
                             else if (props.typenm === "Episode") epobky = "episode_number";
                             else if (props.typenm === "Toy") epobky = "toy_number";
-                            else
-                            {
-                                throw new Error("typenm must be Episode, Toy, or Show, but " +
-                                    "it was not!");
-                            }
+                            else throw new Error(invalidTypeErrMsg);
                             break;
                         }
                         //else;//do nothing
@@ -835,23 +721,18 @@ function EpisodeToyShowOrList(props){
                     let mylnkky = "";
                     if (props.usemy)
                     {
-                        if (props.typenm === "Episode")
-                        {
-                            epobky = "episode";
-                            mlval = "/shows/" + props.epobj[epobky].show.id + "/episodes/" +
-                                props.epobj[epobky].episode_number;
-                        }
-                        else if (props.typenm === "Toy")
-                        {
-                            epobky = "toy";
-                            mlval = "/shows/" + props.epobj[epobky].show.id + "/toys/" +
-                                props.epobj[epobky].toy_number;
-                        }
+                        if (props.typenm === "Episode") epobky = "episode";
+                        else if (props.typenm === "Toy") epobky = "toy";
                         else throw new Error("typenm must be Episode or Toy, but it was not!");
                         console.log("NEW epobky = " + epobky);
+                        
+                        let olnkvalky = "" + epobky + "_number";
+                        console.log("olnkvalky = " + olnkvalky);
 
                         mylnkky = "" + props.typenm.toLowerCase() + "namelink" +
                             props.epobj[epobky].id;
+                        mlval = "/shows/" + props.epobj[epobky].show.id + "/episodes/" +
+                            props.epobj[epobky][olnkvalky];
                     }
                     else
                     {
@@ -892,7 +773,7 @@ function EpisodeToyShowOrList(props){
         //console.warn("*kynmidnm = " + kynmidnm);
         return (<tr key={kynmidnm} id={kynmidnm} className="border" 
             style={{backgroundColor: mybgcolor}}>{mytds}</tr>);
-    }
+    }//END OF DISPLAY ITEM IN A LIST()
 
     function displayItemItself()
     {
@@ -1041,10 +922,9 @@ function EpisodeToyShowOrList(props){
         else myidstr = "swid" + params.showid + "epid" + params.id;
         //console.warn("*mylnkky = containerfor" + myidstr);
         return (<div key={"containerfor" + myidstr} id={myidstr}
-            style={{backgroundColor: mybgcolor}}>
-            {mytds}
-        </div>);
-    }
+            style={{backgroundColor: mybgcolor}}>{mytds}</div>);
+    }//END OF DISPLAY ITEM ITSELF()
+
 
     console.log("NEW loaded = " + loaded);
 
@@ -1102,7 +982,7 @@ function EpisodeToyShowOrList(props){
             if (props.typenm === "Episode") mylist = episodes;
             else if (props.typenm === "Toy") mylist = toys;
             else if (props.typenm === "Show") mylist = shows;
-            else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+            else throw new Error(invalidTypeErrMsg);
             
             myeps = mylist.map((ep) => {
                 let kynm = "";
@@ -1115,7 +995,7 @@ function EpisodeToyShowOrList(props){
                     if (props.typenm === "Episode") kynm = "swidepid" + ep.id;
                     else if (props.typenm === "Toy") kynm = "swidtyid" + ep.id;
                     else if (props.typenm === "Show") kynm = "swidswid" + ep.id;
-                    else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+                    else throw new Error(invalidTypeErrMsg);
                 }
                 kynm = "kidcontainerfor" + kynm;
                 //console.warn("IN MYEPS NO ERR!");
@@ -1135,7 +1015,6 @@ function EpisodeToyShowOrList(props){
         let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
         let mytds = genHeaderRowForList();
         let myhitemstr = "";
-
         let usenoshowname = false;
         if (props.typenm === "Show") usenoshowname = true;
         else if (props.typenm === "Toy")
@@ -1143,10 +1022,7 @@ function EpisodeToyShowOrList(props){
             //if using all toys, then not using just one showname
             //if using only toys for a show, then using a showname
             if (cc.isInteger(params.showid));
-            else if (params.showid === undefined || params.showid === null)
-            {
-                usenoshowname = true;
-            }
+            else if (cc.isItemNullOrUndefined(params.showid)) usenoshowname = true;
         }
         //else;//do nothing will be using a showname by default
         console.log("usenoshowname = " + usenoshowname);

@@ -55,7 +55,8 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
         if (typenm === "Login") return {"username": myinitusrnm, "password": myinitpswrd};
         else if (typenm === "SignUp" || typenm === "Preferences")
         {
-            return {"username": myinitusrnm, "password": myinitpswrd, "access_level": myinitacslv};
+            return {"username": myinitusrnm, "password": myinitpswrd,
+                "access_level": myinitacslv};
         }
         else throw new Error(typenmerrmsg);
     }
@@ -91,17 +92,13 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
                 let valschanged = mkys.map((mky) => (myinitvals[mky] !== values[mky]));
                 console.log("valschanged = ", valschanged);
                 
-                //mytosrvrdataobj = {};
                 for (let n = 0; n < valschanged.length; n++)
                 {
                     cc.letMustBeBoolean(valschanged[n], "valschanged[" + n + "]");
                     
                     if (valschanged[n])
                     {
-                        if (mytosrvrdataobj === undefined || mytosrvrdataobj === null)
-                        {
-                            mytosrvrdataobj = {};
-                        }
+                        if (cc.isItemNullOrUndefined(mytosrvrdataobj)) mytosrvrdataobj = {};
                         //else;//do nothing
                         mytosrvrdataobj[mkys[n]] = values[mkys[n]];
                         if (usesatleastoneval);
@@ -129,21 +126,22 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
                     body: JSON.stringify(mytosrvrdataobj)
                 };
                 let murl = "";
-                if (typenm === "Login") murl = "/login";
-                else if (typenm === "Preferences") murl = "/preferences";
-                else if (typenm === "SignUp") murl = "/signup";
+                if (typenm === "Login" || typenm === "Preferences" || typenm === "SignUp")
+                {
+                    murl = "/" + typenm.toLowerCase();
+                }
                 else throw new Error(typenmerrmsg);
                 console.log("murl = " + murl);
     
                 fetch(murl, myconfigobj).then((res) => res.json()).then((data) => {
                     console.log(data);
                     
-                    let iserr = (data === undefined || data === null);
+                    let iserr = cc.isItemNullOrUndefined(data);
                     if (iserr);
                     else
                     {
                         let dkys = Object.keys(data);
-                        if (dkys === undefined || dkys === null || dkys.length < 1) iserr = true;
+                        if (cc.isStringEmptyNullOrUndefined(dkys)) iserr = true;
                         else
                         {
                             for (let n = 0; n < dkys.length; n++)
@@ -161,7 +159,8 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
                     if (iserr)
                     {
                         //set the error
-                        setErrMsg("there must have been a response given, but the data was empty!");
+                        setErrMsg("there must have been a response given, but the " +
+                            "data was empty!");
                         return;
                     }
                     else
@@ -213,15 +212,7 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
     else useerrcolor = true;
     //console.log("useerrcolor = " + useerrcolor);
 
-    let bgcolor = "";
-    if (useerrcolor) bgcolor = "red";
-    else
-    {
-        if (typenm === "Login") bgcolor = "lime";
-        else if (typenm === "SignUp") bgcolor = "yellow";
-        else if (typenm === "Preferences") bgcolor = "pink";
-        else throw new Error(typenmerrmsg);
-    }
+    let bgcolor = cc.getBGColorToBeUsed(useerrcolor, typenm);
     //lime for login, yellow for signup, pink for prefs
     //console.log("bgcolor = " + bgcolor);
 
@@ -240,7 +231,8 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
         <input id="mypassword" type="text" name="password" value={formik.values.password}
             placeholder="Enter your password" onChange={formik.handleChange} />
         <p> {formik.errors.password}</p>
-        {useprefsorsignupschema ? <><label id="myacslvlbl" htmlFor="myacslv">Access Level: </label>
+        {useprefsorsignupschema ? <><label id="myacslvlbl" htmlFor="myacslv">
+            Access Level: </label>
         <input id="myacslv" type="number" step={1} name="access_level"
             onChange={formik.handleChange} value={formik.values.access_level} placeholder={0} />
         <p> {formik.errors.access_level}</p></>: null}

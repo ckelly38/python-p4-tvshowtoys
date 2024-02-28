@@ -1,3 +1,5 @@
+import { createContext } from "react";
+
 class CommonClass{
     isItemNullOrUndefined(val)
     {
@@ -71,6 +73,130 @@ class CommonClass{
         return this.isNumberOrInteger(val, false);//, vnm
     }
 
+    getAndGenInitDataObjectForType(typenm)
+    {
+        this.letMustBeDefinedAndNotNull(typenm, "typenm");
+
+        if (typenm === "Episode")
+        {
+            return {"description": "description",
+                "name": "loading...",
+                "season_number": -1,
+                "episode_number": -1,
+                "showname": "Show Name",
+                "watched": false,
+                "showid": -1,
+                "id": -1
+            };
+        }
+        else if (typenm === "Toy")
+        {
+            return {"description": "description",
+                "name": "loading...",
+                "showname": "Show Name",
+                "price": -1,
+                "showid": -1,
+                "id": -1
+            };
+        }
+        else if (typenm === "Show")
+        {
+            return {"description": "description",
+                "name": "loading...",
+                "numseasons": -1,
+                "numepisodesperseason": -1,
+                "totalepisodes": -1,
+                "showid": -1,
+                "id": -1
+            };
+        }
+        else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+    }
+
+    //if dataobj is null or undefined it returns a default object
+    //instead of null or throwing an error
+    getAndGenSeasonsInfoObject(dataobj)
+    {
+        console.log("dataobj = ", dataobj);
+        if (this.isItemNullOrUndefined(dataobj))
+        {
+            return {"numseasons": -1,
+                "totalepisodes": -1,
+                "numepisodesperseason": -1
+            };
+        }
+        //else;//do nothing
+        
+        let teps = -1;
+        if (this.isItemNullOrUndefined(dataobj.episodes)) teps = 0;
+        else teps = dataobj.episodes.length;
+        //console.log("teps = " + teps);
+        
+        let numseasons = -1;
+        if (teps === 0) numseasons = 0;
+        else if (teps > 0)
+        {
+            if (this.isItemNullOrUndefined(dataobj.episodes))
+            {
+                throw new Error("the teps was more than zero, but there are no " +
+                    "episodes in the object, so it should have been zero!");
+            }
+            //else;//do nothing
+
+            let mymaxsnum = 0;
+            let mymaxsnumi = -1;
+            for (let n = 0; n < dataobj.episodes.length; n++)
+            {
+                let cepsnnum = dataobj.episodes[n].season_number;
+                if (mymaxsnumi < 0)
+                {
+                    mymaxsnum = cepsnnum;
+                    mymaxsnumi = n;
+                }
+                else
+                {
+                    if (mymaxsnum < cepsnnum)
+                    {
+                        mymaxsnum = cepsnnum;
+                        mymaxsnumi = n;
+                    }
+                    //else;//do nothing
+                }
+            }//end of n for loop
+            //console.log("mymaxsnum = " + mymaxsnum);
+            //console.log("mymaxsnumi = " + mymaxsnumi);
+
+            if (mymaxsnumi < 0 || mymaxsnum < 1)
+            {
+                throw new Error("the teps was more than zero, but there were either " +
+                    "no eps in the object OR there was no valid season number on any " +
+                    "of the episodes. The season number must be greater than zero!");
+            }
+            else numseasons = mymaxsnum;
+        }
+        else throw new Error("teps must be a positive or zero integer!");
+        //console.log("numseasons = " + numseasons);
+
+        let rmndr = (teps % numseasons);
+        let numepsperseason = (teps / numseasons);
+        //console.log("numepsperseason = " + numepsperseason);
+        //console.log("rmndr = " + rmndr);
+
+        let fnumepsperseason = -1;
+        if (rmndr === 0) fnumepsperseason = numepsperseason;
+        else fnumepsperseason = Math.round(numepsperseason);
+        //round up if it is bigger, round down if smaller
+        //console.log("fnumepsperseason = " + fnumepsperseason);
+        
+        let mysnsobj = {"numseasons": numseasons,
+            "totalepisodes": teps,
+            "numepisodesperseason": fnumepsperseason
+        };
+        console.log("mysnsobj = ", mysnsobj);
+        
+        return mysnsobj;
+    }
+
     isStringAOnStringBList(stra, mstrs)
     {
         if (this.isStringEmptyNullOrUndefined(mstrs)) return false;
@@ -85,10 +211,7 @@ class CommonClass{
                 else
                 {
                     if (this.isItemNullOrUndefined(stra));
-                    else
-                    {
-                        if (stra === mstrs[n]) return true;
-                    }
+                    else if (stra === mstrs[n]) return true;
                 }
             }
 
@@ -119,8 +242,14 @@ class CommonClass{
         {
             if (typenm === "Episode") mybgcolor = "cyan";
             else if (typenm === "Toy") mybgcolor = "orange";
-            else if (typenm === "Show") mybgcolor = "yellow";
-            else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+            else if (typenm === "Show" || typenm === "SignUp") mybgcolor = "yellow";
+            else if (typenm === "Login") mybgcolor = "lime";
+            else if (typenm === "Preferences") mybgcolor = "pink";
+            else
+            {
+                throw new Error("typenm must be Episode, Toy, Show, or SignUp, Login, " +
+                    "or Preferences but it was not!");
+            }
         }
         return mybgcolor;
     }
@@ -149,11 +278,15 @@ class CommonClass{
         else if (hstr === "Price") return "epnum" + mycntrtxtnm;
         else if (hstr === "# Of Episodes") return "seasnum" + mycntrtxtnm;
         else if (hstr === "# Of Seasons") return "seasnum" + mycntrtxtnm;
-        else if (this.isStringAOnStringBList(hstr, this.getAcceptedNamesForNumEpisodesPerSeason()))
+        else if (this.isStringAOnStringBList(hstr,
+            this.getAcceptedNamesForNumEpisodesPerSeason()))
         {
             return "seasnum" + mycntrtxtnm;
         }
-        else if (0 <= hstr.indexOf("Name") && hstr.indexOf("Name") < hstr.length) return "namecol";
+        else if (0 <= hstr.indexOf("Name") && hstr.indexOf("Name") < hstr.length)
+        {
+            return "namecol";
+        }
         else return "border";
     }
 
