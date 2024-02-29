@@ -21,15 +21,16 @@ function Navbar({simpusrobj}) {
         <div className="homelinkcls"><Link to="/">Home</Link></div>
         <div className="showslinkcls"><Link to="/shows">Shows</Link></div>
         {(notloggedin || nocreateaccess) ? null :
-          <Link className={"horizontal-gradient"} exact to="/shows/new">New Show</Link>}
+          <Link className={"horizontal-gradient"} exact="true" to="/shows/new">New Show</Link>}
         <div className="epslinkcls">
           <Link to={"/shows/" + mysid + "/episodes"}>Episodes</Link>
         </div>
         {(notloggedin || nocreateaccess) ? null :
-          <button onClick={null}>New Episode</button>}
+          <Link className={"horizontal-gradient"} to={"/shows/" + mysid + "/episodes/new"}>
+            New Episode</Link>}
         <div className="toyslinkcls"><Link to="/toys">Toys</Link></div>
         {(notloggedin || nocreateaccess) ? null :
-          <Link className={"horizontal-gradient"} exact to="/toys/new">New Toy</Link>}
+          <Link className={"horizontal-gradient"} exact="true" to="/toys/new">New Toy</Link>}
         <div className="toysforshowlinkcls">
           <Link to={"/shows/" + mysid + "/toys"}>Toys For Show</Link>
         </div>

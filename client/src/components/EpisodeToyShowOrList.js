@@ -606,7 +606,7 @@ function EpisodeToyShowOrList(props){
                         }
                         //resetState();//did not work
                         //return (<Redirect to="/redirectme" />);//did not work
-                        history.push("/redirectme");//works due to histor.goBack() on route.
+                        history.push("/redirectme");//works due to history.goBack() on route.
                     }).catch((merr) => {
                         console.error("there was an error unwatching an episode!");
                         console.error(merr);

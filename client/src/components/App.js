@@ -3,8 +3,9 @@ import { Switch, Route, Redirect, useHistory } from "react-router-dom";
 import Navbar from "./Navbar";
 import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
 import Logout from "./Logout";
-import CommonClass from "./commonclass";
 import SignUpLoginPreferences from "./SignUpLoginPreferences";
+import NewShowToyEpisode from "./NewShowToyEpisode";
+import CommonClass from "./commonclass";
 
 function App() {
   let history = useHistory();
@@ -62,7 +63,7 @@ function App() {
     if (usemy)
     {
       if (simpusrobj["instatus"]);
-      else return (<Redirect to="/login" />);
+      else return (<Redirect exact to="/login" />);
     }
 
     let myloc = props.location;
@@ -87,6 +88,21 @@ function App() {
         <p>You can view the shows and toys we have and sell on the site.</p>
         <p>If you are logged in, you can view your watch history and your purchased toys.</p>
       <p>If you have the appropriate access level, you can create new shows, episodes, and toys.</p>
+      </Route>
+      <Route exact path="/shows/new">
+        {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
+        <NewShowToyEpisode typenm="Show" simpusrobj={getSimplifiedUserObj()} /></> :
+        <Redirect to="/login" />}
+      </Route>
+      <Route exact path="/toys/new">
+        {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
+        <NewShowToyEpisode typenm="Toy" simpusrobj={getSimplifiedUserObj()} /></> :
+        <Redirect to="/login" />}
+      </Route>
+      <Route path="/shows/:showid/episodes/new">
+        {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
+        <NewShowToyEpisode typenm="Episode" simpusrobj={getSimplifiedUserObj()} /></> :
+        <Redirect to="/login" />}
       </Route>
       <Route exact path="/shows" render={(props) =>
         genEpsShowsToysComponent(props, "swfromapp", "Show", true, false, true, false)} />

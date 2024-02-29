@@ -68,6 +68,10 @@
   background-color: red;
 }
 
+.errorcoloronly {
+  background-color: red;
+}
+
 .navbarcls, .homelinkcls, .toyslinkcls, .showslinkcls, .epslinkcls, .mytoyslinkcls
 .prefslinkcls, .loginlinkcls, .toysforshowlinkcls, .logoutlinkcls, .signuplinkcls,
 .myepslinkcls
