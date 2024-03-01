@@ -253,7 +253,7 @@ class Commonalities:
                                 episode_number=dataobj["episode_number"], show_id=showid);
                     elif (cls == Toy):
                         item = cls(name=dataobj["name"], description=dataobj["description"],
-                                price=dataobj["price"],
+                                price=dataobj["price"], toy_number=dataobj["toy_number"],
                                 show_id=self.getShowIDFrom(dataobj, showid));
                         #show-id comes in the dataobj object: dataobj["show_id"]
                         #show-id comes in as a parameter: showid

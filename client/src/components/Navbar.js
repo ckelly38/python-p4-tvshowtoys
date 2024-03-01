@@ -7,15 +7,23 @@ function Navbar({simpusrobj}) {
     console.log("NAVBAR params = ", params);
     console.log("NAVBAR simpusrobj = ", simpusrobj);
 
-    let cc = new CommonClass();
-    let mysid = "";
-    if (cc.isInteger(params.showid)) mysid = "" + params.showid;
-    else mysid = ":showid";
+    const cc = new CommonClass();
+    cc.letMustBeDefinedAndNotNull(simpusrobj, "simpusrobj");
 
-    let notloggedin = !simpusrobj["instatus"];
-    let alv = simpusrobj["access_level"];
-    let nocreateaccess = (alv !== 2);
-    let username = simpusrobj["username"];
+    let mysid = "";
+    let safetousesid = false;
+    if (cc.isInteger(params.showid))
+    {
+      mysid = "" + params.showid;
+      safetousesid = true;
+    }
+    else mysid = ":showid";
+    console.log("NAVBAR: safetousesid = " + safetousesid);
+
+    const notloggedin = !simpusrobj["instatus"];
+    const alv = simpusrobj["access_level"];
+    const nocreateaccess = (alv !== 2);
+    const username = simpusrobj["username"];
 
     return (<div className="navbarcls">
         <div className="homelinkcls"><Link to="/">Home</Link></div>
@@ -30,7 +38,9 @@ function Navbar({simpusrobj}) {
             New Episode</Link>}
         <div className="toyslinkcls"><Link to="/toys">Toys</Link></div>
         {(notloggedin || nocreateaccess) ? null :
-          <Link className={"horizontal-gradient"} exact="true" to="/toys/new">New Toy</Link>}
+          ((safetousesid) ? <Link className={"horizontal-gradient"}
+            to={"/shows/" + mysid + "/toys/new"}>New Toy</Link>:
+          <Link className={"horizontal-gradient"} exact="true" to="/toys/new">New Toy</Link>)}
         <div className="toysforshowlinkcls">
           <Link to={"/shows/" + mysid + "/toys"}>Toys For Show</Link>
         </div>

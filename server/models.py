@@ -323,9 +323,13 @@ class Toy(db.Model, SerializerMixin):
     __table_args__ = (db.CheckConstraint("length(description) >= 1"),
                      db.CheckConstraint("length(name) >= 1"),
                      db.CheckConstraint("price >= 0"),
-                     db.CheckConstraint("toy_number >= 1"));
+                     db.CheckConstraint("toy_number >= 1"),
+                     db.UniqueConstraint("toy_number", "show_id",
+                                         name="unique_showid_toynumcombo"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
+    #https://stackoverflow.com/questions/10059345/sqlalchemy-unique-across-multiple-columns
+    #above link is for UniqueConstraint method call
     id = db.Column(db.Integer, primary_key=True);
     price = db.Column(db.Float, default=1);
     name = db.Column(db.String, nullable=False);

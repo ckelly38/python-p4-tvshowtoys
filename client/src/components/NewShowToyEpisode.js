@@ -6,6 +6,7 @@ import CommonClass from "./commonclass";
 
 function NewShowToyEpisode({typenm, simpusrobj}) {
     const params = useParams();
+    const history = useHistory();
 
     let cc = new CommonClass();
     cc.letMustBeDefinedAndNotNull(typenm, "typenm");
@@ -18,18 +19,21 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
     let [sucsmsg, setSuccessMsg] = useState("");
     let [snm, setShowName] = useState("Show Name");
     let [useinitvals, setUseInitValues] = useState(true);
-    let [myeps, setMyEps] = useState([]);
+    let [myeps, setMyItems] = useState([]);
 
     console.log("useinitvals = " + useinitvals);
     console.log("myeps = ", myeps);
+    console.log("params = ", params);
 
-    let [myinitvals, setMyInitValuesObj] = useState(getInitialValuesObjForType(useinitvals, myeps));
+    let [myinitvals, setMyInitValuesObj] = useState(
+        getInitialValuesObjForType(useinitvals, myeps));
 
     console.log("AFTER INITIAL CALL TO SET INITIAL VALUES OBJ!");
 
     const iserr = (simpusrobj.access_level !== 2);
 
-    const typenmerrmsg = "typenm is invalid! It must be Episode, Toy, or Show, but it was not!";
+    const typenmerrmsg = "typenm is invalid! It must be Episode, Toy, or Show, " +
+        "but it was not!";
     if (typenm === "Episode" || typenm === "Show" || typenm === "Toy");
     else throw new Error(typenmerrmsg);
 
@@ -56,7 +60,7 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
     const toySchema = yup.object().shape({
         name: yup.string().required("You must enter an episode name!").min(1),
         description: yup.string().required("You must enter a description!").min(1),
-        price: yup.number().positive().min(1)
+        price: yup.number().min(0)
         .required("You must enter the price!")
         .typeError("You must enter a positive number or decimal!"),
         show_id: yup.number().positive().integer().min(1)
@@ -104,7 +108,17 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                     setShowName(data.name);
                 }
 
-                fetch("/shows/" + mysid + "/episodes").then((res) => res.json())
+                let murl = "";
+                if (typenm === "Episode") murl = "/shows/" + mysid + "/episodes";
+                else if (typenm === "Toy") murl = "/shows/" + mysid + "/toys";
+                else
+                {
+                    throw new Error("typenm is invalid! It must be Episode or Toy, " +
+                        "but it was not!");
+                }
+                console.log("murl = " + murl);
+
+                fetch(murl).then((res) => res.json())
                 .then((data) => {
                     console.log(data);
                     
@@ -123,7 +137,7 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                         }
 
                         console.log("successfully set myeps!");
-                        setMyEps(data);
+                        setMyItems(data);
                         setUseInitValues(false);
                         console.log("SET INITIAL VALUES OBJ HERE (WITH FETCH):");
                         console.log("useinitvals = false");
@@ -143,10 +157,47 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
         }
         else
         {
-            console.log("SET INITIAL VALUES OBJ HERE (NO FETCH):");
-            console.log("useinitvals = " + useinitvals);
-            console.log("myeps = " + myeps);
-            setMyInitValuesObj(getInitialValuesObjForType(useinitvals, myeps));
+            if (iserr || typenm !== "Toy")
+            {
+                console.log("SET INITIAL VALUES OBJ HERE (NO FETCH):");
+                console.log("useinitvals = " + useinitvals);
+                console.log("myeps = " + myeps);
+                setMyInitValuesObj(getInitialValuesObjForType(useinitvals, myeps));
+            }
+            else
+            {
+                fetch("/toys").then((res) => res.json())
+                .then((data) => {
+                    console.log(data);
+                    
+                    if (data === undefined || data === null) setUseInitValues(true);
+                    else
+                    {
+                        let dkys = Object.keys(data);
+                        console.log(dkys);
+                        for (let n = 0; n < dkys.length; n++)
+                        {
+                            if (dkys[n] === "error")
+                            {
+                                setUseInitValues(true);
+                                return;
+                            }
+                        }
+
+                        console.log("successfully set myeps!");
+                        setMyItems(data);
+                        setUseInitValues(true);
+                        console.log("SET INITIAL VALUES OBJ HERE (WITH FETCH):");
+                        console.log("useinitvals = true");
+                        console.log("data = ", data);
+                        setMyInitValuesObj(getInitialValuesObjForType(true, data));
+                    }
+                }).catch((merr) => {
+                    console.error("there was a problem getting how many episodes there are!");
+                    console.error(merr);
+                    setUseInitValues(true);
+                });
+            }
         }
     }, [useparamshowid, mysid, iserr]);
 
@@ -165,7 +216,7 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
             if (cc.isItemNullOrUndefined(params.showid));
             else if (cc.isInteger(params.showid))
             {
-                myinitshowid = params.showid;
+                myinitshowid = Number(params.showid);
                 useparamshowid = true;
             }
             //else;//do nothing
@@ -176,8 +227,34 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
 
             if (typenm === "Toy")
             {
-                return {"name": myinitname, "description": myinitdescription,
-                    "show_id": myinitshowid, "price": myinitprice};
+                if (useparamshowid)
+                {
+                    if (museinitvals)
+                    {
+                        return {"name": myinitname, "description": myinitdescription,
+                            "show_id": myinitshowid, "price": myinitprice, "toy_number": -1};
+                    }
+                    else
+                    {
+                        //returns a list then in each item we can get the ep num
+                        let tynums = mdata.map((item, index) => item.toy_number);
+                        console.log("tynums = ", tynums);
+
+                        let myinittynum = -1;
+                        if (cc.isStringEmptyNullOrUndefined(tynums)) myinittynum = 1;
+                        else myinittynum = Math.max(...tynums) + 1;
+                        console.log("myinittynum = " + myinittynum);
+                        
+                        return {"name": myinitname, "description": myinitdescription,
+                            "show_id": myinitshowid, "price": myinitprice,
+                            "toy_number": myinittynum};
+                    }
+                }
+                else
+                {
+                    return {"name": myinitname, "description": myinitdescription,
+                            "show_id": myinitshowid, "price": myinitprice, "toy_number": -1};
+                }
             }
             //else;//do nothing
 
@@ -197,8 +274,10 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                     console.log("epnums = ", epnums);
                     console.log("mysnums = ", mysnums);
 
-                    myinitepnum = Math.max(...epnums);
-                    myinitsnnum = Math.min(...mysnums);
+                    if (cc.isStringEmptyNullOrUndefined(epnums)) myinitepnum = 1;
+                    else myinitepnum = Math.max(...epnums) + 1;
+                    if (cc.isStringEmptyNullOrUndefined(mysnums)) myinitsnnum = 1;
+                    else myinitsnnum = Math.min(...mysnums);
 
                     console.log("myinitepnum = " + myinitepnum);
                     console.log("myinitsnnum = " + myinitsnnum);
@@ -217,23 +296,117 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
         }
         else if (typenm === "Show")
         {
-            return {"name": myinitname, "description": myinitdescription, "user_id": myinitusrid};
+            return {"name": myinitname, "description": myinitdescription,
+                "user_id": myinitusrid};
         }
         else throw new Error(typenmerrmsg);
     }
 
-    
+    //https://stackoverflow.com/questions/71083815/
+    //how-do-i-set-initialvalues-of-useformik-to-data-returned-from-an-api-request
+    //for the enableReinitialize line only
     const formik = useFormik({
-        initialValues: getInitialValuesObjForType(useinitvals, myeps),
+        initialValues: myinitvals,
+        enableReinitialize: true,
         validationSchema: formSchema,
         onSubmit: (values) => {
             console.log("values = ", values);
-            //do something here...
-            return null;
+            console.log("typenm = " + typenm);
+            
+            let murl = "";
+            if (typenm === "Episode") murl = "/shows/" + values.show_id + "/episodes";
+            else if (typenm === "Show") murl = "/shows";
+            else if (typenm === "Toy") murl = "/toys";
+            else throw new Error(typenmerrmsg);
+            console.log("murl = " + murl);
+
+            if (typenm === "Toy" || typenm === "Episode")
+            {
+                let mynweps = myeps.filter((item) =>
+                    (item.show.id === Number(values.show_id)));
+                console.log("values.show_id = " + values.show_id);
+                console.log("mynweps = ", mynweps);
+
+                setMyItems(mynweps);
+                values[typenm.toLowerCase() + "_number"] = mynweps.length + 1;
+                console.log("NEW values = ", values);
+
+                if (typenm === "Toy")
+                {
+                    if (cc.isInteger(values.toy_number));
+                    else throw new Error("the toy_number must be defined!");
+                }
+                else if (typenm === "Episode")
+                {
+                    if (cc.isInteger(values.episode_number));
+                    else throw new Error("the episode_number must be defined!");
+                }
+                else
+                {
+                    throw new Error("typenm is invalid! It must be Episode or Toy, " +
+                        "but it was not!");
+                }
+            }
+            //else;//do nothing
+            
+            let myconfigobj = {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(values)
+            };
+            fetch(murl, myconfigobj).then((res) => res.json())
+            .then((data) => {
+                console.log(data);
+                
+                if (data === undefined || data === null)
+                {
+                    setErrMsg("data was empty as the response back from the server!");
+                    return;
+                }
+                else
+                {
+                    let dkys = Object.keys(data);
+                    console.log(dkys);
+                    for (let n = 0; n < dkys.length; n++)
+                    {
+                        if (dkys[n] === "error")
+                        {
+                            setErrMsg(data["error"]);
+                            return;
+                        }
+                    }
+                }
+
+                if (typenm === "Toy")
+                {
+                    if (cc.isInteger(data.toy_number));
+                    else throw new Error("the toy_number must be defined!");
+                }
+                else if (typenm === "Episode")
+                {
+                    if (cc.isInteger(data.episode_number));
+                    else throw new Error("the episode_number must be defined!");
+                }
+                else if (typenm === "Show");
+                else throw new Error(typenmerrmsg);
+
+                console.log("successfully posted the data to the server!");
+                setSuccessMsg("successfully posted the data to the server!");
+
+                history.push(murl);
+            }).catch((merr) => {
+                console.error("there was an error adding the data to the server!");
+                console.error(merr);
+                setErrMsg(merr.message);
+            });
         },
     });
     console.log(getInitialValuesObjForType(useinitvals, myeps));
     console.log("formik.values = ", formik.values);
+    console.log("myinitvals = ", myinitvals);
 
     if (simpusrobj.access_level === 2);
     else
@@ -278,7 +451,9 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
             <p> {formik.errors.name}</p>
             <label id="desclbl" htmlFor="mydesc">Description: </label>
             <input id="mydesc" type="text" name="description" value={formik.values.description}
-                placeholder={"Enter " + typenm + " description"} onChange={formik.handleChange} />
+                style={{minWidth: "1100px", minHeight: "60px"}}
+                placeholder={"Enter " + typenm + " description"}
+                onChange={formik.handleChange} />
             <p> {formik.errors.description}</p>
             
             {(typenm === "Show") ? <><label id="myusridlbl" htmlFor="myusrid">User ID: </label>
@@ -286,12 +461,14 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                 onChange={formik.handleChange} value={formik.values.user_id} placeholder={0} />
             <p> {formik.errors.user_id}</p></>: null}
             
-            {(typenm === "Show") ? null: <><label id="myswidlbl" htmlFor="myswid">Show ID: </label>
+            {(typenm === "Show") ? null: <>
+            <label id="myswidlbl" htmlFor="myswid">Show ID: </label>
             <input id="myswid" type="number" step={1} name="show_id"
                 onChange={formik.handleChange} value={formik.values.show_id} placeholder={0} />
             <p> {formik.errors.show_id}</p></>}
             
-            {(typenm === "Episode") ? <><label id="mysnnumlbl" htmlFor="mysnnum">Season #: </label>
+            {(typenm === "Episode") ? <>
+            <label id="mysnnumlbl" htmlFor="mysnnum">Season #: </label>
             <input id="mysnnum" type="number" step={1} name="season_number" placeholder={0}
                 onChange={formik.handleChange} value={formik.values.season_number} />
             <p> {formik.errors.season_number}</p>

@@ -1,8 +1,8 @@
-"""creates new models
+"""create models
 
-Revision ID: 5bd88b4ef9fe
-Revises: 4e6038156c53
-Create Date: 2024-02-25 02:11:04.487427
+Revision ID: 98537a54ffa6
+Revises: 954db17ee243
+Create Date: 2024-03-01 04:09:33.619468
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5bd88b4ef9fe'
-down_revision = '4e6038156c53'
+revision = '98537a54ffa6'
+down_revision = '954db17ee243'
 branch_labels = None
 depends_on = None
 
@@ -65,7 +65,8 @@ def upgrade():
     sa.CheckConstraint('price >= 0'),
     sa.CheckConstraint('toy_number >= 1'),
     sa.ForeignKeyConstraint(['show_id'], ['shows.id'], name=op.f('fk_toys_show_id_shows')),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('toy_number', 'show_id', name='unique_showid_toynumcombo')
     )
     op.create_table('user_episodes',
     sa.Column('user_id', sa.Integer(), nullable=False),

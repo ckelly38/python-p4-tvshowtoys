@@ -5,6 +5,7 @@ import EpisodeToyShowOrList from "./EpisodeToyShowOrList";
 import Logout from "./Logout";
 import SignUpLoginPreferences from "./SignUpLoginPreferences";
 import NewShowToyEpisode from "./NewShowToyEpisode";
+import Home from "./Home";
 import CommonClass from "./commonclass";
 
 function App() {
@@ -82,12 +83,7 @@ function App() {
       <Switch>
       <Route exact path="/">
         <Navbar simpusrobj={getSimplifiedUserObj()} />
-        <h1>Home</h1>
-        {getLoggedInStatus() ? <h2>Welcome {getUserName()}</h2>: <h2>You are not logged in!</h2>}
-        <p>Dear User, simply <b>reloading the page will log you out.</b> Be careful.</p>
-        <p>You can view the shows and toys we have and sell on the site.</p>
-        <p>If you are logged in, you can view your watch history and your purchased toys.</p>
-      <p>If you have the appropriate access level, you can create new shows, episodes, and toys.</p>
+        <Home simpusrobj={getSimplifiedUserObj()} />
       </Route>
       <Route exact path="/shows/new">
         {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
@@ -95,6 +91,11 @@ function App() {
         <Redirect to="/login" />}
       </Route>
       <Route exact path="/toys/new">
+        {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
+        <NewShowToyEpisode typenm="Toy" simpusrobj={getSimplifiedUserObj()} /></> :
+        <Redirect to="/login" />}
+      </Route>
+      <Route path="/shows/:showid/toys/new">
         {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
         <NewShowToyEpisode typenm="Toy" simpusrobj={getSimplifiedUserObj()} /></> :
         <Redirect to="/login" />}
@@ -122,13 +123,11 @@ function App() {
         genEpsShowsToysComponent(props, "tyfromapp", "Toy", false, false, true, false)} />
       <Route exact path="/my-episodes" render={(props) =>
         genEpsShowsToysComponent(props, "epfromapp", "Episode", true, false, true, true)} />
-      <Route exact path="/my-toys">
-        <Navbar simpusrobj={getSimplifiedUserObj()} />
-        <h1>My Toys</h1>
-      </Route>
+      <Route exact path="/my-toys" render={(props) =>
+        genEpsShowsToysComponent(props, "tyfromapp", "Toy", true, false, true, true)} />
       <Route exact path="/preferences">
         {getLoggedInStatus() ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
-          <SignUpLoginPreferences typenm="Preferences"  setuser={setUser}
+          <SignUpLoginPreferences typenm="Preferences" setuser={setUser}
             simpusrobj={getSimplifiedUserObj()} />
         </> : <Redirect to="/login" />}
       </Route>
@@ -145,7 +144,7 @@ function App() {
       <Route exact path="/signup">
         {getLoggedInStatus() ? <Redirect to="/" /> : <>
             <Navbar simpusrobj={getSimplifiedUserObj()} />
-            <SignUpLoginPreferences typenm="SignUp"  setuser={setUser}
+            <SignUpLoginPreferences typenm="SignUp" setuser={setUser}
               simpusrobj={getSimplifiedUserObj()} /></>}
       </Route>
       <Route exact path="/redirectme" render={(props) => {

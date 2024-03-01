@@ -84,15 +84,26 @@ if __name__ == '__main__':
         print(eppmone);
         db.session.add(eppmone);
         db.session.commit();
-        bkone = Episode(id=2,
+        eppmtwo = Episode(id=2,
+                          name="Intro Team Rocket",
+                          season_number=1,
+                          episode_number=2,
+                          show=pm,
+                          description="Ash battles team Rocket at the Pokemon Center and " +
+                          "Team Rocket destroys it. Ash an Pickachu are finally well bonded.");
+        print(eppmtwo);
+        db.session.add(eppmtwo);
+        db.session.commit();
+        bkone = Episode(id=3,
                         name="The Merge",
                         season_number=1,
                         episode_number=1,
                         show=bkgn,
                         description="This is when the Backugan first came to Earth " +
-                        "because they decided that Vistroia should merge with Earth. That also "
-                        "meant that the Maze on Earth was created too. Then several kids discovered " +
-                        "the Backugan in huge crator and all over other places in the world.");
+                        "because they decided that Vistroia should merge with Earth. That " +
+                        "also meant that the Maze on Earth was created too. Then several " +
+                        "kids discovered the Backugan in huge crator and all over other " +
+                        "places in the world.");
         print(bkone);
         db.session.add(bkone);
         db.session.commit();
@@ -348,8 +359,8 @@ if __name__ == '__main__':
                 toyone = Toy(name="",
                             price=3.25,
                             description="Stuffed animal that looks, talks, and vibrates like " +
-                            "Pickachu when you push the buttons in its paws! Cannot actually zap " +
-                            "you!",
+                            "Pickachu when you push the buttons in its paws! Cannot actually " +
+                            "zap you!",
                             show=pm,
                             toy_number=3);
                 print(toyone);
@@ -408,6 +419,23 @@ if __name__ == '__main__':
                 unitstfailed = False;
                 db.session.rollback();
             if (unitstfailed): raise Exception("toy number must not be less than one!");
+
+            unitstfailed = True;
+            try:
+                odrago = Toy(name="ODrago",
+                    price=4.35,
+                    description="Fire type Backugan that unfolds into a red dragon.",
+                    show=bkgn,
+                    toy_number=1);
+                db.session.add(odrago);
+                db.session.commit();
+                print(odrago);
+            except:
+                print("TOY SHOW_ID AND TOY_NUMBER MUST BE UNIQUE: TEST PAST!");
+                db.session.rollback();
+                unitstfailed = False;
+            if (unitstfailed):
+                raise Exception("Toy SHOW_ID and TOY_NUMBER both must be unique test failed!");
 
             #add data for usertoy test
             #print("CREATING DATA FOR USER-TOY QUANTITY TEST:");
