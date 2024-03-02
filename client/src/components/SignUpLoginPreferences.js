@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Switch, Route, Link, useParams, useHistory, Redirect } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
 import CommonClass from "./commonclass";
@@ -11,6 +12,8 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
 
     let [errmsg, setErrMsg] = useState("");
     let [sucsmsg, setSuccessMsg] = useState("");
+    let [swpswrd, setShowPassword] = useState(false);
+    let history = useHistory();
 
     const typenmerrmsg = "typenm is invalid! It must be Preferences, SignUp, or Login, but it " +
         "was not!";
@@ -228,8 +231,11 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
             placeholder="Enter your username" onChange={formik.handleChange} />
         <p> {formik.errors.username}</p>
         <label id="passwordlbl" htmlFor="mypassword">Password: </label>
-        <input id="mypassword" type="text" name="password" value={formik.values.password}
-            placeholder="Enter your password" onChange={formik.handleChange} />
+        <input id="mypassword" type={swpswrd ? "text": "password"} name="password"
+            value={formik.values.password} placeholder="Enter your password"
+            onChange={formik.handleChange} />
+        <button type="button" onClick={(event) => setShowPassword(!swpswrd)}>
+            {(swpswrd ? "Hide": "Show") + " Password"}</button>
         <p> {formik.errors.password}</p>
         {useprefsorsignupschema ? <><label id="myacslvlbl" htmlFor="myacslv">
             Access Level: </label>
@@ -237,6 +243,7 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
             onChange={formik.handleChange} value={formik.values.access_level} placeholder={0} />
         <p> {formik.errors.access_level}</p></>: null}
         <button type="submit">{mybtnnm}</button>
+        <button type="button" onClick={(event) => history.push("/")}>Cancel</button>
     </form>
     <p>{(useerrcolor) ? errmsg : sucsmsg}</p>
     </div>);

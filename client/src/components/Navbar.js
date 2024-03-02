@@ -25,10 +25,6 @@ function Navbar({simpusrobj}) {
     const nocreateaccess = (alv !== 2);
     const username = simpusrobj["username"];
 
-    //if they don't own the show, they should not be allowed to create new episodes for it
-    //if they don't own the show, they should not be allowed to create new toys for it
-    //because they cannot make any money
-
     return (<div className="navbarcls">
         <div className="homelinkcls"><Link to="/">Home</Link></div>
         <div className="showslinkcls"><Link to="/shows">Shows</Link></div>
