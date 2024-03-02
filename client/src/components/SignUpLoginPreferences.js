@@ -15,8 +15,8 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
     let [swpswrd, setShowPassword] = useState(false);
     let history = useHistory();
 
-    const typenmerrmsg = "typenm is invalid! It must be Preferences, SignUp, or Login, but it " +
-        "was not!";
+    const typenmerrmsg = "typenm is invalid! It must be Preferences, SignUp, or Login, " +
+        "but it was not!";
     if (typenm === "Preferences" || typenm === "SignUp" || typenm === "Login");
     else throw new Error(typenmerrmsg);
 

@@ -106,6 +106,9 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                     }
                     
                     console.log("successfully set the showname and the owner ID!");
+                    cc.letMustBeDefinedAndNotNull(data.name, "data.name");
+                    cc.letMustBeDefinedAndNotNull(data.owner_id, "data.owner_id");
+
                     setShowName(data.name);
                     setShowOwnerID(data.owner_id);
                 }
@@ -426,7 +429,16 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                 {
                     console.log("sownerid = " + sownerid);
                     console.log("simpusrobj.id = " + simpusrobj.id);
-                    dopostfetch = (sownerid === simpusrobj.id);
+                    
+                    if (cc.isInteger(sownerid)) dopostfetch = (sownerid === simpusrobj.id);
+                    else
+                    {
+                        let mynwerrmsg = "the owner ID is not an integer, but we got " +
+                            "it from state!";
+                        console.error(mynwerrmsg);
+                        setErrMsg(mynwerrmsg);
+                        throw new Error(mynwerrmsg);
+                    }
                 }
                 else
                 {
@@ -471,7 +483,7 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                                 dopostfetch = false;
                                 doinfofetch = false;
                                 setErrMsg("You are not allowed to create new Episodes, " +
-                                    "Toys, or Shows!");
+                                    "or Toys for Shows you do not own!");
                             }
                         }).catch((merr) => {
                             console.error("there was an error loading the needed data " +
@@ -491,8 +503,16 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                 if (doinfofetch) return (<p>Waiting for response...!</p>);
                 else
                 {
-                    setErrMsg("You are not allowed to create new Episodes, " +
-                        "Toys, or Shows!");
+                    if (iserr)
+                    {
+                        setErrMsg("You are not allowed to create new Episodes, " +
+                            "Toys, or Shows!");
+                    }
+                    else
+                    {
+                        setErrMsg("You are not allowed to create new Episodes, " +
+                                    "or Toys for Shows you do not own!");
+                    }
                 }
             }
         },
