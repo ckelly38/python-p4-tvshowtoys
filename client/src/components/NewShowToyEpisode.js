@@ -18,6 +18,7 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
     let [errmsg, setErrMsg] = useState("");
     let [sucsmsg, setSuccessMsg] = useState("");
     let [snm, setShowName] = useState("Show Name");
+    let [sownerid, setShowOwnerID] = useState(-1);
     let [useinitvals, setUseInitValues] = useState(true);
     let [myeps, setMyItems] = useState([]);
 
@@ -104,8 +105,9 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                         }
                     }
                     
-                    console.log("successfully set the showname!");
+                    console.log("successfully set the showname and the owner ID!");
                     setShowName(data.name);
+                    setShowOwnerID(data.owner_id);
                 }
 
                 let murl = "";
@@ -166,8 +168,7 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
             }
             else
             {
-                fetch("/toys").then((res) => res.json())
-                .then((data) => {
+                fetch("/toys").then((res) => res.json()).then((data) => {
                     console.log(data);
                     
                     if (data === undefined || data === null) setUseInitValues(true);
@@ -302,6 +303,62 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
         else throw new Error(typenmerrmsg);
     }
 
+    function myOnSubmitPostDataRequest(values, murl)
+    {
+        cc.letMustBeDefinedAndNotNull(values, "values");
+        cc.letMustBeDefinedAndNotNull(murl, "murl");
+
+        let myconfigobj = {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(values)
+        };
+        fetch(murl, myconfigobj).then((res) => res.json())
+        .then((data) => {
+            console.log(data);
+            
+            if (data === undefined || data === null)
+            {
+                setErrMsg("data was empty as the response back from the server!");
+                return;
+            }
+            else
+            {
+                let dkys = Object.keys(data);
+                console.log(dkys);
+                for (let n = 0; n < dkys.length; n++)
+                {
+                    if (dkys[n] === "error")
+                    {
+                        setErrMsg(data["error"]);
+                        return;
+                    }
+                }
+            }
+
+            if (typenm === "Toy" || typenm === "Episode")
+            {
+                let omky = "" + typenm.toLowerCase() + "_number";
+                if (cc.isInteger(data[omky]));
+                else throw new Error("the " + omky + " must be defined!");
+            }
+            else if (typenm === "Show");
+            else throw new Error(typenmerrmsg);
+
+            console.log("successfully posted the data to the server!");
+            setSuccessMsg("successfully posted the data to the server!");
+
+            history.push(murl);
+        }).catch((merr) => {
+            console.error("there was an error adding the data to the server!");
+            console.error(merr);
+            setErrMsg(merr.message);
+        });
+    }
+
     //https://stackoverflow.com/questions/71083815/
     //how-do-i-set-initialvalues-of-useformik-to-data-returned-from-an-api-request
     //for the enableReinitialize line only
@@ -320,6 +377,9 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
             else throw new Error(typenmerrmsg);
             console.log("murl = " + murl);
 
+            let doinfofetch = !iserr;
+            let dopostfetch = !iserr;
+            let getinfofromstate = false;
             if (typenm === "Toy" || typenm === "Episode")
             {
                 let mynweps = myeps.filter((item) =>
@@ -328,80 +388,109 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                 console.log("mynweps = ", mynweps);
 
                 setMyItems(mynweps);
-                values[typenm.toLowerCase() + "_number"] = mynweps.length + 1;
+                let myky = "" + typenm.toLowerCase() + "_number";
+                values[myky] = mynweps.length + 1;
                 console.log("NEW values = ", values);
 
-                if (typenm === "Toy")
+                if (cc.isInteger(values[myky]));
+                else throw new Error("the " + myky + " must be defined!");
+
+                //need to get the owner ID from the SHOW ID
+                //then we need to verify it if we are allowed to post or not
+                //if the current user ID is the owner ID -> allowed: otherwise not
+                if (Number(values.show_id) === Number(params.showid))
                 {
-                    if (cc.isInteger(values.toy_number));
-                    else throw new Error("the toy_number must be defined!");
-                }
-                else if (typenm === "Episode")
-                {
-                    if (cc.isInteger(values.episode_number));
-                    else throw new Error("the episode_number must be defined!");
-                }
-                else
-                {
-                    throw new Error("typenm is invalid! It must be Episode or Toy, " +
-                        "but it was not!");
-                }
-            }
-            //else;//do nothing
-            
-            let myconfigobj = {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(values)
-            };
-            fetch(murl, myconfigobj).then((res) => res.json())
-            .then((data) => {
-                console.log(data);
-                
-                if (data === undefined || data === null)
-                {
-                    setErrMsg("data was empty as the response back from the server!");
-                    return;
-                }
-                else
-                {
-                    let dkys = Object.keys(data);
-                    console.log(dkys);
-                    for (let n = 0; n < dkys.length; n++)
+                    if (!iserr && useparamshowid) getinfofromstate = true;
+                    else
                     {
-                        if (dkys[n] === "error")
-                        {
-                            setErrMsg(data["error"]);
-                            return;
-                        }
+                        if (iserr);//do not do either fetch and let it error out no access
+                        else doinfofetch = true;
                     }
                 }
+                else doinfofetch = true;
+            }
+            //else;//do nothing
+            console.log("getinfofromstate = " + getinfofromstate);
+            console.log("doinfofetch = " + doinfofetch);
+            console.log("NEW dopostfetch = " + dopostfetch);
+            console.log("iserr = " + iserr);
 
-                if (typenm === "Toy")
+            if (iserr);
+            else
+            {
+                if (getinfofromstate)
                 {
-                    if (cc.isInteger(data.toy_number));
-                    else throw new Error("the toy_number must be defined!");
+                    console.log("sownerid = " + sownerid);
+                    console.log("simpusrobj.id = " + simpusrobj.id);
+                    dopostfetch = (sownerid === simpusrobj.id);
                 }
-                else if (typenm === "Episode")
+                else
                 {
-                    if (cc.isInteger(data.episode_number));
-                    else throw new Error("the episode_number must be defined!");
+                    if (doinfofetch)
+                    {
+                        dopostfetch = false;
+                        //do the post fetch in the then...
+                        fetch("/shows/" + values.show_id).then((res) => res.json())
+                        .then((data) => {
+                            console.log(data);
+            
+                            if (data === undefined || data === null)
+                            {
+                                setErrMsg("data was empty as the response back " +
+                                    "from the server!");
+                                return;
+                            }
+                            else
+                            {
+                                let dkys = Object.keys(data);
+                                console.log(dkys);
+                                for (let n = 0; n < dkys.length; n++)
+                                {
+                                    if (dkys[n] === "error")
+                                    {
+                                        setErrMsg(data["error"]);
+                                        return;
+                                    }
+                                }
+                            }
+
+                            console.log("successfully set the showname and the owner ID!");
+                            setShowName(data.name);
+                            setShowOwnerID(data.owner_id);
+
+                            dopostfetch = (Number(data.owner_id) === simpusrobj.id);
+                            console.log("FINAL dopostfetch = " + dopostfetch);
+            
+                            if (dopostfetch) myOnSubmitPostDataRequest(values, murl);
+                            else
+                            {
+                                dopostfetch = false;
+                                doinfofetch = false;
+                                setErrMsg("You are not allowed to create new Episodes, " +
+                                    "Toys, or Shows!");
+                            }
+                        }).catch((merr) => {
+                            console.error("there was an error loading the needed data " +
+                                "from the server!");
+                            console.error(merr);
+                            setErrMsg(merr.message);
+                        });
+                    }
+                    //else;//do nothing
                 }
-                else if (typenm === "Show");
-                else throw new Error(typenmerrmsg);
-
-                console.log("successfully posted the data to the server!");
-                setSuccessMsg("successfully posted the data to the server!");
-
-                history.push(murl);
-            }).catch((merr) => {
-                console.error("there was an error adding the data to the server!");
-                console.error(merr);
-                setErrMsg(merr.message);
-            });
+            }
+            console.log("FINAL dopostfetch = " + dopostfetch);
+            
+            if (dopostfetch) myOnSubmitPostDataRequest(values, murl);
+            else
+            {
+                if (doinfofetch) return (<p>Waiting for response...!</p>);
+                else
+                {
+                    setErrMsg("You are not allowed to create new Episodes, " +
+                        "Toys, or Shows!");
+                }
+            }
         },
     });
     console.log(getInitialValuesObjForType(useinitvals, myeps));
