@@ -228,12 +228,13 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
     <form onSubmit={formik.handleSubmit}>
         <label id="usernamelbl" htmlFor="myusername">Username: </label>
         <input id="myusername" type="text" name="username" value={formik.values.username}
-            placeholder="Enter your username" onChange={formik.handleChange} />
+            placeholder="Enter your username" autoComplete="username"
+            onChange={formik.handleChange} />
         <p> {formik.errors.username}</p>
         <label id="passwordlbl" htmlFor="mypassword">Password: </label>
         <input id="mypassword" type={swpswrd ? "text": "password"} name="password"
             value={formik.values.password} placeholder="Enter your password"
-            onChange={formik.handleChange} />
+            autoComplete="current-password" onChange={formik.handleChange} />
         <button type="button" onClick={(event) => setShowPassword(!swpswrd)}>
             {(swpswrd ? "Hide": "Show") + " Password"}</button>
         <p> {formik.errors.password}</p>

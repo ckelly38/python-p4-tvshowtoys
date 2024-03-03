@@ -275,7 +275,7 @@ class CommonClass{
 
         if (hstr === "Season #") return "seasnum" + mycntrtxtnm;
         else if (hstr === "Episode #") return "epnum" + mycntrtxtnm;
-        else if (hstr === "Price") return "epnum" + mycntrtxtnm;
+        else if (hstr === "Price" || hstr === "Quantity") return "epnum" + mycntrtxtnm;
         else if (hstr === "# Of Episodes") return "seasnum" + mycntrtxtnm;
         else if (hstr === "# Of Seasons") return "seasnum" + mycntrtxtnm;
         else if (this.isStringAOnStringBList(hstr,
@@ -308,13 +308,10 @@ class CommonClass{
         }
         else if (typenm === "Toy")
         {
-            hlist = ["Name", "Show Name", "Price", "Description"];
-            if (useindivdisp)
-            {
-                let tempitem = "" + hlist[0];
-                hlist[0] = "" + hlist[1];
-                hlist[1] = "" + tempitem;
-            }
+            let indvdisplist = ["Show Name", "Name", "Price", "Quantity", "Description"];
+            let nonindvlist = ["Name", "Show Name", "Price", "Description"];
+            if (useindivdisp) return indvdisplist;
+            else return nonindvlist;
         }
         else if (typenm === "Show")
         {
