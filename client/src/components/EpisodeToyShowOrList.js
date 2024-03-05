@@ -637,8 +637,8 @@ function EpisodeToyShowOrList(props){
                     <button onClick={(event) => setShowSellToyForm(!showselltoy)}>
                         {(showselltoy) ? "Hide Form": "Show Form"}</button> : null}
                 {(props.typenm === "Toy" && showselltoy) ?
-                    <SellToForm sellerID={props.simpusrobj.id} atmost={props.epobj.quantity} />
-                    : null}</td>);
+                    <SellToForm sellerID={props.simpusrobj.id}
+                        atmost={props.epobj.quantity} /> : null}</td>);
         }
 
         let myotds = myhlist.map((mstr) =>
@@ -651,8 +651,8 @@ function EpisodeToyShowOrList(props){
                 if (err)
                 {
                     //console.warn("*mydescky = err" + basekynm);
-                    return (<td key={"err" + basekynm} dangerouslySetInnerHTML={createMarkUp()}>
-                        </td>);
+                    return (<td key={"err" + basekynm}
+                        dangerouslySetInnerHTML={createMarkUp()}></td>);
                 }
                 else
                 {
@@ -771,7 +771,8 @@ function EpisodeToyShowOrList(props){
                     else
                     {
                         mlval = "" + props.location.pathname + "/" + props.epobj[epobky];
-                        mylnkky = "" + props.typenm.toLowerCase() + "namelink" + props.epobj.id;
+                        mylnkky = "" + props.typenm.toLowerCase() + "namelink" +
+                            props.epobj.id;
                     }
                     //console.warn("*mylnkky = " + mylnkky);
                     itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);

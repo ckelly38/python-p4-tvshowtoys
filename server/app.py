@@ -161,6 +161,32 @@ class Commonalities:
             errmsg += "have creation/deletion access!";
             return {"error": errmsg}, 401;
 
+    def userIsShowOwner(self, cls, msess, item):
+        fully_authorized = False;
+        if (item == None): return {"message": "authorized"}, 200;
+        if (cls == Show or cls == Episode or cls == Toy):
+            usrobj = self.getUserFromTheSession(msess);
+            if (usrobj == None):
+                errmsg = "401 error you are not allowed to do that. You must be ";
+                errmsg += "logged in and have creation/deletion access!";
+                return {"error": errmsg}, 401;
+            else:
+                if (cls == Show):
+                    if (item.owner_id == usrobj.id): fully_authorized = True;
+                else:
+                    if (item.show == None):
+                        sw = Show.query.filter_by(id=item.show_id).first();
+                        if (sw.owner_id == usrobj.id): fully_authorized = True;
+                    else:
+                        if (item.show.owner_id == usrobj.id): fully_authorized = True;
+            if (fully_authorized): return {"message": "authorized"}, 200;
+            else:
+                errmsg = "401 error you are not allowed to do that. You must be ";
+                errmsg += "logged in and have creation/deletion access!";
+                errmsg += "You must be the show owner to add/remove toys, or episodes!";
+                return {"error": errmsg}, 401;
+        else: return {"message": "authorized"}, 200;
+
     def getDataObjectFromRequest(self, rqst):
         if (rqst == None): raise ValueError("the request object must be defined!");
         rfm = rqst.form;
@@ -269,6 +295,9 @@ class Commonalities:
                     else:
                         raise ValueError("the class must be one of the following: " +
                                         f"{self.getValidClassList()}!");
+                    resobj = self.userIsShowOwner(cls, msess, item);
+                    if (resobj[1] == 200): pass;
+                    else: return resobj;
                 else:
                     #print("DOING PATCH HERE!");
                     for attr in dataobj:
@@ -280,8 +309,14 @@ class Commonalities:
                         else: mky = '' + attr;
                         #print(f"key = {mky}");
                         #print(f"value = {dataobj[attr]}");
+                        resobj = self.userIsShowOwner(cls, msess, item);
+                        if (resobj[1] == 200): pass;
+                        else: return resobj;
                         setattr(item, mky, dataobj[attr]);
                     #print(f"NEW item = {item}");
+                resobj = self.userIsShowOwner(cls, msess, item);
+                if (resobj[1] == 200): pass;
+                else: return resobj;
                 db.session.add(item);
                 db.session.commit();
             except Exception as ex:
@@ -307,30 +342,37 @@ class Commonalities:
         return self.addOrUpdateItemOnDBAndReturnResponse(id, cls, rqst, msess, False, showid,
                                                          numlisttype, usrid);
 
-    def removeItemGivenItemFromDBAndReturnResponse(self, id, cls, item):
+    def removeItemGivenItemFromDBAndReturnResponse(self, id, cls, item, msess):
         #for the generic delete
         #grab it by its id
         #then remove it from the db
         #db.session.delete(obj);
         #db.session.commit();
         #then return a successful response
+        errmsg = "";
         if (item == None):
             errmsg = f"404 error item of type {self.getTypeStringForClass(cls)}";
             errmsg += f", with id {id} not found!";
             return {"error": errmsg}, 404;
+        else:
+            resobj = self.userIsShowOwner(cls, msess, item);
+            if (resobj[1] == 200): pass;
+            else: return resobj;
         db.session.delete(item);
         db.session.commit();
         msg = f"200 successfully deleted item of type {self.getTypeStringForClass(cls)} ";
         msg += f"with id {id}!";
         return {"message": msg}, 200;
 
-    def removeItemGivenItemOnlyFromDBAndReturnResponse(self, item):
+    def removeItemGivenItemOnlyFromDBAndReturnResponse(self, item, msess):
         if (item == None): return {"error": "404 error item must not be null or None"}, 404;
-        else: return self.removeItemGivenItemFromDBAndReturnResponse(item.id, type(item), item);
+        else:
+            return self.removeItemGivenItemFromDBAndReturnResponse(item.id, type(item),
+                                                                   item, msess);
 
-    def removeItemFromDBAndReturnResponse(self, id, cls, usrid=0):
+    def removeItemFromDBAndReturnResponse(self, id, cls, msess, usrid=0):
         item = self.getItemByID(id, cls, usrid);
-        return self.removeItemGivenItemFromDBAndReturnResponse(id, cls, item);
+        return self.removeItemGivenItemFromDBAndReturnResponse(id, cls, item, msess);
 
     def postOrPatchAndReturnResponse(self, cls, rqst, msess, useadd, showid=0, id=0,
                                      numlisttype=3, usrid=0):
@@ -342,7 +384,7 @@ class Commonalities:
 
     def completeDeleteItemFromDBAndReturnResponse(self, id, cls, msess):
         resobj = cm.makeSureAuthorized(msess);#returns a tuple for the response
-        if (resobj[1] == 200): return cm.removeItemFromDBAndReturnResponse(id, cls);
+        if (resobj[1] == 200): return cm.removeItemFromDBAndReturnResponse(id, cls, msess);
         else: return resobj;
 
 cm = Commonalities();
