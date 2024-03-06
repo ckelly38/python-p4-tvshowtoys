@@ -26,9 +26,11 @@ function EpisodeToyShowOrList(props){
     let [loaded, setLoaded] = useState(false);
     let [showselltoy, setShowSellToyForm] = useState(false);
     let [err, setError] = useState(false);
+    let [cusrisshowowner, setCurrentUserIsShowOwner] = useState(false);
     let [episodes, setEpisodes] = useState([]);
     let [shows, setShows] = useState([]);
     let [toys, setToys] = useState([]);
+    let [usertoys, setAllUserToyData] = useState([]);
     let [showname, setShowName] = useState("Show Name");
     let myinitdataepobj = cc.getAndGenInitDataObjectForType("Episode");
     let myinitdatatoyobj = cc.getAndGenInitDataObjectForType("Toy");
@@ -152,7 +154,8 @@ function EpisodeToyShowOrList(props){
         let fivehundredrangemsg = "the server crashed and is not started OR it encountered " +
             "an error and needs to be restarted!";
         
-        let fourhundredrangemsg = "did not provide an <b><u>integer id</u></b> when requested!";
+        let fourhundredrangemsg = "did not provide an <b><u>integer id</u></b> " +
+            "when requested!";
 
         let errmsg = "a " + resobj.status + " error occured check the console " +
         "for more details!<br /><br />URL: " + resobj.url + " NOT FOUND!" +
@@ -211,6 +214,167 @@ function EpisodeToyShowOrList(props){
             }
             console.log("murl = " + murl);
 
+            if (props.usemy && props.typenm === "Toy")
+            {
+                console.log("");
+                console.log("GETTING ALL USER TOY DATA FIRST BEFORE THE OTHER URL!");
+                console.log("murl = /all-user-toy-data");
+                fetch("/all-user-toy-data").then((res) => {
+                    console.log(res);
+                    let myobj = {};
+                    myobj["url"] = "" + res.url;
+                    myobj["status"] = res.status;
+                    console.log(myobj);
+                    mres.current = {...myobj};
+                    console.log("AFTER SET STATE CALLED!");
+                    if (res.status === 200 || (200 < res.status && res.status < 400))
+                    {
+                        return res.json();
+                    }
+                    else
+                    {
+                        console.log("BEFORE TRY!");
+                        try
+                        {
+                            let mjsn = res.json();
+                            return mjsn;
+                        }
+                        catch(ex)
+                        {
+                            genAndSetErrorMessage(res, 3);
+                            setError(true);
+                        }
+                        return res;
+                    }
+                }).then((data) => {
+                    console.log(data);
+                    if (data === undefined || data === null)
+                    {
+                        if (props.typenm === "Episode") setEpisodes([]);
+                        else if (props.typenm === "Toy")
+                        {
+                            if (props.usemy) setAllUserToyData([]);
+                            else setToys([]);
+                        }
+                        else if (props.typenm === "Show") setShows([]);
+                        else throw new Error(invalidTypeErrMsg);
+                    }
+                    else
+                    {
+                        let dkys = Object.keys(data);
+                        console.log(dkys);
+                        for (let n = 0; n < dkys.length; n++)
+                        {
+                            if (dkys[n] === "error")
+                            {
+                                setErrorMessageState(data["error"]);
+                                setError(true);
+                                return;
+                            }
+                        }
+
+                        console.log("successfully got all of the UserToy data!");
+                        setAllUserToyData(data);
+                    }
+                }).catch((merr) => {
+                    console.error("there was an error loading the episode data!");
+                    console.error(merr);
+                    console.log(err);
+                    if (err);
+                    else
+                    {
+                        genAndSetErrorMessage(mres.current, 4);
+                        setError(true);
+                    }
+                });
+
+                fetch("/shows").then((res) => {
+                    console.log(res);
+                    let myobj = {};
+                    myobj["url"] = "" + res.url;
+                    myobj["status"] = res.status;
+                    console.log(myobj);
+                    mres.current = {...myobj};
+                    console.log("AFTER SET STATE CALLED!");
+                    if (res.status === 200 || (200 < res.status && res.status < 400))
+                    {
+                        return res.json();
+                    }
+                    else
+                    {
+                        console.log("BEFORE TRY!");
+                        try
+                        {
+                            let mjsn = res.json();
+                            return mjsn;
+                        }
+                        catch(ex)
+                        {
+                            genAndSetErrorMessage(res, 3);
+                            setError(true);
+                        }
+                        return res;
+                    }
+                }).then((data) => {
+                    console.log(data);
+                    if (data === undefined || data === null)
+                    {
+                        if (props.typenm === "Episode") setEpisodes([]);
+                        else if (props.typenm === "Toy")
+                        {
+                            if (props.usemy) setAllUserToyData([]);
+                            else setToys([]);
+                        }
+                        else if (props.typenm === "Show") setShows([]);
+                        else throw new Error(invalidTypeErrMsg);
+                    }
+                    else
+                    {
+                        let dkys = Object.keys(data);
+                        console.log(dkys);
+                        for (let n = 0; n < dkys.length; n++)
+                        {
+                            if (dkys[n] === "error")
+                            {
+                                setErrorMessageState(data["error"]);
+                                setError(true);
+                                return;
+                            }
+                        }
+
+                        console.log("successfully got all of the Shows data!");
+                        setShows(data);
+
+                        //go through the shows data and see if our current user
+                        //is a show owner
+                        let isswownr = false;
+                        for (let n = 0; n < data.length; n++)
+                        {
+                            if (data[n].owner_id === props.simpusrobj.id)
+                            {
+                                isswownr = true;
+                                break;
+                            }
+                        }
+                        console.log("isswownr = " + isswownr);
+                        
+                        setCurrentUserIsShowOwner(isswownr);
+                    }
+                }).catch((merr) => {
+                    console.error("there was an error loading the episode data!");
+                    console.error(merr);
+                    console.log(err);
+                    if (err);
+                    else
+                    {
+                        genAndSetErrorMessage(mres.current, 4);
+                        setError(true);
+                    }
+                });
+            }
+            //else;//do nothing
+
+            console.log("murl = " + murl);
             fetch(murl).then((res) => {
                 console.log(res);
                 let myobj = {};
@@ -284,7 +448,8 @@ function EpisodeToyShowOrList(props){
 
                                     if (cc.isStringEmptyNullOrUndefined(myinitepslist))
                                     {
-                                        setErrorMessageState("No Episodes on the watched list!");
+                                        setErrorMessageState("No Episodes on the " +
+                                            "watched list!");
                                         setError(true);
                                     }
                                     //else;//do nothing
@@ -294,10 +459,26 @@ function EpisodeToyShowOrList(props){
                             else if (props.typenm === "Toy") setToys(data);
                             else
                             {
-                                throw new Error("typenm must be Episode or Toy, but it was not!");
+                                throw new Error("typenm must be Episode or Toy, " +
+                                    "but it was not!");
                             }
                         }
-                        else if (props.typenm === "Show") setShows(data);
+                        else if (props.typenm === "Show")
+                        {
+                            let isswownr = false;
+                            for (let n = 0; n < data.length; n++)
+                            {
+                                if (data[n].owner_id === props.simpusrobj.id)
+                                {
+                                    isswownr = true;
+                                    break;
+                                }
+                            }
+                            console.log("isswownr = " + isswownr);
+                            
+                            setShows(data);
+                            setCurrentUserIsShowOwner(isswownr);
+                        }
                         else throw new Error(invalidTypeErrMsg);
                     }
                     else
@@ -307,6 +488,7 @@ function EpisodeToyShowOrList(props){
                             console.log("DATA TYPE IS SHOW!");
                             genAndSetNewDataStateObject(data,
                                 cc.getAndGenSeasonsInfoObject(data));
+                            setCurrentUserIsShowOwner((data.owner_id === props.simpusrobj.id));
                         }
                         else
                         {
@@ -343,7 +525,8 @@ function EpisodeToyShowOrList(props){
                                             "user_id": props.simpusrobj.id
                                         })
                                     };
-                                    fetch("/my-episodes", myconfigobj).then((res) => res.json())
+                                    fetch("/my-episodes", myconfigobj).
+                                    then((res) => res.json())
                                     .then((odata) => {
                                         console.log(odata);
                                     }).catch((merr) => {
@@ -404,6 +587,8 @@ function EpisodeToyShowOrList(props){
     console.log("toys = ", toys);
     console.log("shows = ", shows);
     console.log("episodes = ", episodes);
+    console.log("usertoys = ", usertoys);
+    console.log("cusrisshowowner = " + cusrisshowowner);
     console.log("loaded = " + loaded);
     console.log("props.uselist = " + props.uselist);
     console.log("props.useinlist = " + props.useinlist);
@@ -440,9 +625,11 @@ function EpisodeToyShowOrList(props){
         console.log("BEGINNNING RESETTING STATE:");
         setLoaded(false);
         setError(false);
+        setCurrentUserIsShowOwner(false);
         setEpisodes([]);
         setShows([]);
         setToys([]);
+        setAllUserToyData([]);
         setMyShowDataObj(myinitdatashowobj);
         setMyToyDataObj(myinitdatatoyobj);
         setMyEpDataObj(myinitdataepobj);
@@ -519,13 +706,15 @@ function EpisodeToyShowOrList(props){
                     <td className="redbgclrtxtcntrborder">{cntrnumb}</td>
                 </>
             }
-            {(props.typenm === "Show") ? <>
-            <td className="redbgclrtxtcntrborder">{myinitdatashowobj.numepisodesperseason}</td>
+            {(props.typenm === "Show") ? <><td className="redbgclrtxtcntrborder">
+                {myinitdatashowobj.numepisodesperseason}</td>
             <td className="redbgclrborder">Watch Link</td></>: null}
             {(props.typenm === "Toy") ?
             <td className="redbgclrtxtcntrborder">{myinitdatatoyobj.price}</td> : null}
-            {(props.typenm === "Show") ? <td className="redbgclrborder">Toys Link</td>: null}
-            {(props.typenm === "Episode") ? <td className="redbgclrborder">Watch Link</td>: null}
+            {(props.typenm === "Show") ?
+            <td className="redbgclrborder">Toys Link</td>: null}
+            {(props.typenm === "Episode") ?
+                <td className="redbgclrborder">Watch Link</td>: null}
             {(props.usemy && props.typenm === "Toy") ?
             <td className="redbgclrtxtcntrborder">0</td> : null}
             <td className="redbgclrborder" dangerouslySetInnerHTML={createMarkUp()}></td></tr>
@@ -565,14 +754,13 @@ function EpisodeToyShowOrList(props){
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json"
-            },
-            body: JSON.stringify(props.epobj)
+            }
         };
         let myurl = "";
         if (props.typenm === "Episode" || props.typenm === "Toy")
         {
             myurl = "" + props.location.pathname + "/" +
-                props.epobj.episode.id;
+                props.epobj[props.typenm.toLowerCase()].id;
         }
         else throw new Error("typenm must be Episode, or Toy, but it was not!");
         console.log("myurl = " + myurl);
@@ -625,6 +813,7 @@ function EpisodeToyShowOrList(props){
         {
             //need to know who to sell it to and how much
             //if selling all, sell all to whomever and then DELETE it
+            console.log("usertoys = ", usertoys);
                             
             let mybtnnm = "";
             if (props.typenm === "Episode") mybtnnm = "Unwatch " + props.typenm;
@@ -635,10 +824,12 @@ function EpisodeToyShowOrList(props){
                 <button onClick={delItem}>{mybtnnm}</button>
                 {(props.typenm === "Toy") ?
                     <button onClick={(event) => setShowSellToyForm(!showselltoy)}>
-                        {(showselltoy) ? "Hide Form": "Show Form"}</button> : null}
+                        {(showselltoy) ? "Hide Form":
+                            "Show Transfer Toy Form"}</button> : null}
                 {(props.typenm === "Toy" && showselltoy) ?
-                    <SellToForm sellerID={props.simpusrobj.id}
-                        atmost={props.epobj.quantity} /> : null}</td>);
+                    <SellToForm sellerID={props.simpusrobj.id} usertoyobj={props.epobj}
+                        atmost={props.epobj.quantity} delitemfunc={delItem}
+                        resetstate={resetState} /> : null}</td>);
         }
 
         let myotds = myhlist.map((mstr) =>
@@ -765,7 +956,7 @@ function EpisodeToyShowOrList(props){
 
                         mylnkky = "" + props.typenm.toLowerCase() + "namelink" +
                             props.epobj[epobky].id;
-                        mlval = "/shows/" + props.epobj[epobky].show.id + "/episodes/" +
+                        mlval = "/shows/" + props.epobj[epobky].show.id + "/" + epobky + "s/" +
                             props.epobj[epobky][olnkvalky];
                     }
                     else
@@ -973,6 +1164,176 @@ function EpisodeToyShowOrList(props){
     }//END OF DISPLAY ITEM ITSELF()
 
 
+    function getMyProfitTDsAndProfit()
+    {
+        //if it is on the mytoys page for a show owner,
+        //we want to know how much total revenue they have made?
+        //and how much of each toy sold?
+        //and at what price for each sold toy?
+        //TOY ID, HOW MANY SOLD, PRICE SOLD AT, TOTAL PROFIT MADE
+        //Both below and above print the computed total revenue
+        //We should also let the user have the option to see the calculation
+        let tprofit = 0;
+        let myprofittds = null;
+        if (err)
+        {
+            myprofittds = [<tr className="border">
+                <td className="border">0</td>
+                <td className="redbgclrtxtcntrborder">0</td>
+                <td className="redbgclrtxtcntrborder">0</td>
+                <td className="redbgclrtxtcntrborder">0</td>
+                <td className="redbgclrtxtcntrborder">0</td>
+            </tr>];
+        }
+        else
+        {
+            if (props.usemy && props.typenm === "Toy")
+            {
+                console.log("BEGIN GETTING THE PROFIT TDS HERE:");
+                console.log("usertoys = ", usertoys);
+                console.log("toys = ", toys);
+                console.log("current user ID = " + props.simpusrobj.id);
+                //how do I get the show owners of all of the toys?
+                //toy.show.owner_id
+
+                //from the usertoy data we need:
+                //if we are the show owner and if we own the toy
+                //we want to know how many got sold and at what price
+                //if many users bought the same toy:
+                //-what happens if the prices are different? What price do we display then?
+                //-we do add the items up (combine the quantities) (combine the profit)
+                //-we use the average price (total profit / total bought) regular not integer.
+                //if the current user owns the toy, the quantity increases, but the price is 0.
+                //ID Q P T O
+                //1  1 1 1 1
+                //2  1 5 5 1
+                //3  1 3 3 1
+                //4  1 7 7 1
+                //1  3 2 6 0
+
+                //combine the data first
+                //ID Q P T
+                //1  4 1/4 1
+
+                myprofittds = [];
+                let itemsused = [];
+                usertoys.forEach((mitem) => {
+                    console.log("mitem = ", mitem);
+
+                    let addit = true;
+                    let usedindx = -1;
+                    for (let n = 0; n < itemsused.length; n++)
+                    {
+                        if (itemsused[n].toy_id === mitem.toy.id)
+                        {
+                            usedindx = n;
+                            addit = false;
+                            break;
+                        }
+                    }
+                    console.log("addit = " + addit);
+                    console.log("usedindx = " + usedindx);
+
+                    let cusrisswownr = (mitem.toy.show.owner_id === props.simpusrobj.id);
+                    if (cusrisswownr)
+                    {
+                        console.log("the current user owns the show!");
+                    }
+                    else
+                    {
+                        console.log("the current user does not own the show!");
+                    }
+                    let busridisswownr = (mitem.toy.show.owner_id === mitem.user.id);
+                    if (busridisswownr)
+                    {
+                        console.log("the buyer that bought the toy owns the show!");
+                    }
+                    else
+                    {
+                        console.log("the buyer that bought the toy does not own the show!");
+                    }
+
+                    if (addit)
+                    {
+                        console.log("ADDED MITEM TO THE LIST!");
+                        //we only need: quantity, toy_id, show_id, show_owner_id, price
+                        let nwprice = 0;
+                        if (busridisswownr);
+                        else nwprice = mitem.toy.price;
+                        console.log("nwprice = " + nwprice);
+
+                        let mynwobj = {
+                            "quantity": mitem.quantity,
+                            "buyer_id": mitem.user.id,
+                            "toy_id": mitem.toy.id,
+                            "price": nwprice,
+                            "actual_price": mitem.toy.price,
+                            "show_id": mitem.toy.show.id,
+                            "show_owner_id": mitem.toy.show.owner_id
+                        };
+                        console.log("mynwobj = ", mynwobj);
+
+                        itemsused.push(mynwobj);
+                    }
+                    else
+                    {
+                        console.log("NEED TO COMBINE THE ITEMS!");
+                        console.log("CURRENT mitem = ", mitem);
+                        console.log("OLD ITEM ON LIST = itemsused[" + usedindx + "] = ",
+                            itemsused[usedindx]);
+                        
+                            //combine the quantities
+                        let oldquantity = itemsused[usedindx].quantity;
+                        itemsused[usedindx].quantity = oldquantity + mitem.quantity;
+                        console.log("oldquantity = " + oldquantity);
+                        console.log("NEW quantity = itemsused[" + usedindx + "].quantity = " +
+                            itemsused[usedindx].quantity);
+                        
+                            //if the current user owns the toy, for both,
+                        //then price and profit: 0
+                        //compute the normal profit: price * quantity
+                        //computed price: profit / quantity
+                        
+                        let onwprice = 0;
+                        if (busridisswownr);
+                        else onwprice = mitem.toy.price;
+                        console.log("onwprice = " + onwprice);
+                        
+                        let cprofit = (oldquantity * itemsused[usedindx].price) +
+                            (mitem.quantity * onwprice);
+                        console.log("cprofit = " + cprofit);
+
+                        itemsused[usedindx].price = cprofit / itemsused[usedindx].quantity;
+                        console.log("NEW ITEM ON LIST = itemsused[" + usedindx + "] = ",
+                            itemsused[usedindx]);
+                    }
+                });
+                console.log("FINAL itemsused = ", itemsused);
+                
+                myprofittds = itemsused.map((mitem) => {
+                    console.log("mitem = ", mitem);
+
+                    let mitemcost = mitem.quantity * mitem.price;
+                    tprofit += mitemcost;
+
+                    return (<tr className="border">
+                        <td className="border">{mitem.toy_id}</td>
+                        <td className="border">{mitem.quantity}</td>
+                        <td className="border">{mitem.actual_price}</td>
+                        <td className="border">{mitem.price}</td>
+                        <td className="border">{mitemcost}</td>
+                    </tr>);
+                });
+            }
+            //else;//do nothing
+        }
+        console.log("myprofittds = ", myprofittds);
+        console.log("tprofit = " + tprofit);
+
+        return [myprofittds, tprofit];
+    }
+
+
     console.log("NEW loaded = " + loaded);
 
     if (loaded);
@@ -997,7 +1358,7 @@ function EpisodeToyShowOrList(props){
                     //console.warn("*kynmidnm = loadingrow" + props.epobj.id);
                     //console.warn("*kynmidnm = loadingcol" + props.epobj.id);
                     return (<tr key={"loadingrow" + props.epobj.id}>
-                    <td key={"loadingcol" + props.epobj.id}>loading...</td></tr>);
+                        <td key={"loadingcol" + props.epobj.id}>loading...</td></tr>);
                 }
             }
             else return <div>loading...</div>;
@@ -1008,6 +1369,7 @@ function EpisodeToyShowOrList(props){
     console.log("FINAL myshowdataobj = ", myshowdataobj);
     console.log("FINAL myepdataobj = ", myepdataobj);
     console.log("FINAL showname = " + showname);
+    console.log("FINAL cusrisshowowner = " + cusrisshowowner);
 
     let myeps = null;
     let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
@@ -1059,8 +1421,9 @@ function EpisodeToyShowOrList(props){
                 //console.warn("ep = ", ep);
                 //console.warn("*kynm = " + kynm);
 
-                return (<EpisodeToyShowOrList key={kynm} typenm={props.typenm} uselist={false}
-                    useinlist={true} epobj={ep} location={props.location} usemy={props.usemy}
+                return (<EpisodeToyShowOrList key={kynm} typenm={props.typenm}
+                    uselist={false} useinlist={true} epobj={ep} usemy={props.usemy}
+                    location={props.location} 
                     watchall={props.watchall} setWatchAll={props.setWatchAll}
                     watcheditems={props.watcheditems}
                     setWatchedItems={props.setWatchedItems}
@@ -1120,42 +1483,26 @@ function EpisodeToyShowOrList(props){
             }
         }
         console.log("mytds = ", mytds);
+        console.log("cusrisshowowner = " + cusrisshowowner);
+        console.log("err = " + err);
+        console.log("");
 
-        //if it is on the mytoys page for a show owner,
-        //we want to know how much total revenue they have made?
-        //and how much of each toy sold?
-        //and at what price for each sold toy?
-        //TOY ID, HOW MANY SOLD, PRICE SOLD AT, TOTAL PROFIT MADE
-        //Both below and above print the computed total revenue
-        //We should also let the user have the option to see the calculation
-        let tprofit = 0;
+        let profitresarr = null;
         let myprofittds = null;
-        if (err)
+        let tprofit = 0;
+        if (err || cusrisshowowner)
         {
-            myprofittds = [<tr className="border">
-                <td className="border">0</td>
-                <td className="redbgclrtxtcntrborder">0</td>
-                <td className="redbgclrtxtcntrborder">0</td>
-                <td className="redbgclrtxtcntrborder">0</td>
-            </tr>];
+            //get the data
+            profitresarr = getMyProfitTDsAndProfit();
+            myprofittds = profitresarr[0];
+            tprofit = profitresarr[1];
         }
-        else
-        {
-            if (props.usemy && props.typenm === "Toy")
-            {
-                //do something here...
-                console.error("NOT DONE YET WITH THE PROFIT TDS HERE...!");
-
-                myprofittds = [<tr className="border">
-                    <td className="border">dataobj.toy.id</td>
-                    <td className="border">dataobj.quantity</td>
-                    <td className="border">dataobj.toy.price</td>
-                    <td className="border">dataobj.quantity * dataobj.toy.price</td>
-                </tr>];
-            }
-            //else;//do nothing
-        }
-
+        //else;//do nothing
+        console.log("JUST BEFORE RENDER:");
+        console.log("myprofittds = ", myprofittds);
+        console.log("tprofit = " + tprofit);
+        console.log("cusrisshowowner = " + cusrisshowowner);
+        
 
         //toys (for all shows, so no show name) vs
         //toys for show: show name
@@ -1163,13 +1510,14 @@ function EpisodeToyShowOrList(props){
         //shows
         return (<div style={{backgroundColor: mybgcolor}}>
             <h1>{myhitemstr}{props.usemy ? null: mysnmitemval}</h1>
-            {(props.usemy && props.typenm === "Toy") ?
+            {(props.usemy && props.typenm === "Toy" && cusrisshowowner) ?
             <div><h2>Total Profit: ${tprofit}</h2>
             <table className="border">
                 <thead>
                     <tr className="border">
                         <td className="border">Toy ID#</td>
                         <td className="border">Total Items Sold</td>
+                        <td className="border">Actual Price $</td>
                         <td className="border">Price $</td>
                         <td className="border">Total Profit $</td>
                     </tr>

@@ -21,7 +21,7 @@ class GenerateSerializableRulesClass:
 
     def getSafeListForClassName(self, clsnm):
         if (clsnm == "User"): return ["id", "name", "access_level"];
-        elif (clsnm == "Show"): return ["id", "name", "description"];
+        elif (clsnm == "Show"): return ["id", "name", "description", "owner_id"];
         elif (clsnm == "Episode"):
             return ["id", "name", "description", "season_number", "episode_number"];
         elif (clsnm == "Toy"): return ["id", "name", "description", "price", "toy_number"];

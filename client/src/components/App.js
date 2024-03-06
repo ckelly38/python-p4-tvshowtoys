@@ -150,7 +150,8 @@ function App() {
       <Route exact path="/redirectme" render={(props) => {
         console.log("history = ", history);
         return history.goBack();
-        //THIS HELPS TRIGGER A RERENDER WITHOUT SETTING UNNECESSARY STATE OUTSIDE OF THE COMPONENT
+        //THIS HELPS TRIGGER A RERENDER WITHOUT SETTING UNNECESSARY STATE
+        //OUTSIDE OF THE COMPONENT
       }} />
       <Route path="*"><Redirect to="/" /></Route>
     </Switch>

@@ -71,7 +71,8 @@ class Commonalities:
             elif (numlisttype == 2): return item.to_dict(only=cls.unsafelist);
             elif (numlisttype == 3): return item.to_dict(only=cls.full_list);
             else:
-                raise ValueError("numlisttype must be 1 (safe), 2 (unsafe), or 3 (full) only!");
+                raise ValueError("numlisttype must be 1 (safe), 2 (unsafe), " +
+                                 "or 3 (full) only!");
         else:
             raise ValueError("the class must be one of the following: " +
                              f"{self.getValidClassList()}!");
@@ -96,6 +97,8 @@ class Commonalities:
         elif (self.isClsValid(cls)):
             if (cls == UserToy or cls == UserEpisodes):
                 if (cls == UserToy):
+                    print(f"usrid = {usrid}");
+                    print(f"toy_id = {id}");
                     return cls.query.filter_by(user_id=usrid, toy_id=id).first();
                 elif (cls == UserEpisodes):
                     return cls.query.filter_by(user_id=usrid, episode_id=id).first();
@@ -199,6 +202,12 @@ class Commonalities:
                              "should not have been empty!");
         return dataobj;
 
+    #currently uses: session, data, then param
+    #what if we want it to use: session, param, data
+    #what if we want it to use data, session, param
+    #what if we want it to use data, param, session
+    #what if we want it to use param, session, data
+    #what if we want it to use param, data, session
     def getUserIDFrom(self, msess, dataobj, param):
         notsession = (msess == None);
         notdata = (dataobj == None);
@@ -248,24 +257,32 @@ class Commonalities:
         else: raise ValueError("useadd must be a boolean value!");
         if (msess == None): raise ValueError("the session object must be defined!");
         if (rqst == None): raise ValueError("the request object must be defined!");
-        #print(f"useadd = {useadd}");
-        #print(cls);
-    
+        print(f"useadd = {useadd}");
+        print(cls);
+
+        dataobj = self.getDataObjectFromRequest(rqst);
+        print(dataobj);
+
         item = None;
         if (useadd): pass;
         else:
-            item = self.getItemByID(id, cls, usrid);
+            if (cls == UserToy): itemusrid = dataobj["user_id"];
+            else: itemusrid = usrid;
+            print(f"itemusrid = {itemusrid}");
+            
+            item = self.getItemByID(id, cls, itemusrid);
+            print(item);
+            
             if (item == None):
                 errmsg = f"404 error item of type {self.getTypeStringForClass(cls)}";
                 errmsg += f", with id {id} not found!";
                 return {"error": errmsg}, 404;
-        dataobj = self.getDataObjectFromRequest(rqst);
-        #print(dataobj);
+        
         if (self.isClsValid(cls)):
             try:
                 cls.getValidator().enableValidator();
                 if (useadd):
-                    #print("DOING POST HERE!");
+                    print("DOING POST HERE!");
                     if (cls == User):
                         item = cls(name=dataobj["username"],
                                    access_level=dataobj["access_level"]);
@@ -290,16 +307,17 @@ class Commonalities:
                         item = cls(user_id=self.getUserIDFrom(msess, dataobj, usrid),
                                    episode_id=dataobj["episode_id"]);
                     elif (cls == UserToy):
-                        item = cls(user_id=self.getUserIDFrom(msess, dataobj, usrid),
+                        item = cls(user_id=dataobj["user_id"],
                                    toy_id=dataobj["toy_id"], quantity=dataobj["quantity"]);
                     else:
                         raise ValueError("the class must be one of the following: " +
                                         f"{self.getValidClassList()}!");
+                    print(f"NEW item = {item}");
                     resobj = self.userIsShowOwner(cls, msess, item);
                     if (resobj[1] == 200): pass;
                     else: return resobj;
                 else:
-                    #print("DOING PATCH HERE!");
+                    print("DOING PATCH HERE!");
                     for attr in dataobj:
                         mky = '';
                         if (cls == User):
@@ -313,7 +331,8 @@ class Commonalities:
                         if (resobj[1] == 200): pass;
                         else: return resobj;
                         setattr(item, mky, dataobj[attr]);
-                    #print(f"NEW item = {item}");
+                    print(f"NEW item = {item}");
+                print(f"FINAL item = {item}");
                 resobj = self.userIsShowOwner(cls, msess, item);
                 if (resobj[1] == 200): pass;
                 else: return resobj;
@@ -350,6 +369,8 @@ class Commonalities:
         #db.session.commit();
         #then return a successful response
         errmsg = "";
+        #print("INSIDE DELETE():");
+        #print(item);
         if (item == None):
             errmsg = f"404 error item of type {self.getTypeStringForClass(cls)}";
             errmsg += f", with id {id} not found!";
@@ -371,7 +392,11 @@ class Commonalities:
                                                                    item, msess);
 
     def removeItemFromDBAndReturnResponse(self, id, cls, msess, usrid=0):
+        #print(f"usrid = {usrid}");
+        #print(f"id = {id}");
+        #print("NOW CALLING GET ITEM BY ID():");
         item = self.getItemByID(id, cls, usrid);
+        #print(item);
         return self.removeItemGivenItemFromDBAndReturnResponse(id, cls, item, msess);
 
     def postOrPatchAndReturnResponse(self, cls, rqst, msess, useadd, showid=0, id=0,
@@ -382,9 +407,10 @@ class Commonalities:
                                                              showid, numlisttype, usrid);
         else: return resobj;
 
-    def completeDeleteItemFromDBAndReturnResponse(self, id, cls, msess):
+    def completeDeleteItemFromDBAndReturnResponse(self, id, cls, msess, usrid=0):
         resobj = cm.makeSureAuthorized(msess);#returns a tuple for the response
-        if (resobj[1] == 200): return cm.removeItemFromDBAndReturnResponse(id, cls, msess);
+        if (resobj[1] == 200):
+            return cm.removeItemFromDBAndReturnResponse(id, cls, msess, usrid);
         else: return resobj;
 
 cm = Commonalities();
@@ -510,7 +536,7 @@ class MyEpisodesByID(Resource):
     def delete(self, id):
         usr = cm.getUserFromTheSession(session);
         if (usr == None): return {"error": "401 error no users logged in!"}, 401;
-        else: return cm.removeItemFromDBAndReturnResponse(id, UserEpisodes, usr.id);
+        else: return cm.removeItemFromDBAndReturnResponse(id, UserEpisodes, session, usr.id);
 
 api.add_resource(MyEpisodesByID, "/my-watchlist/<int:id>", "/my-episodes/<int:id>");
 
@@ -549,10 +575,19 @@ class MyToysByID(Resource):
 
     def delete(self, id):
         usr = cm.getUserFromTheSession(session);
+        #print("BEGIN DELETE MY TOY:");
+        #print(f"id of the item to remove = {id}");
+        #print(usr);
         if (usr == None): return {"error": "401 error no users logged in!"}, 401;
-        else: return cm.removeItemFromDBAndReturnResponse(id, UserToy, usr.id);
+        else: return cm.removeItemFromDBAndReturnResponse(id, UserToy, session, usr.id);
 
 api.add_resource(MyToysByID, "/my-toys/<int:id>");
+
+class AllPurchasedToysData(Resource):
+    def get(self):
+        return cm.getAllOfTypeAndSerializeThem(UserToy, 3, True, 0);
+
+api.add_resource(AllPurchasedToysData, "/all-user-toy-data");
 
 class Episodes(Resource):
     def get(self, showid):
@@ -563,12 +598,14 @@ class Episodes(Resource):
         return [cm.getSerializedItem(Episode, item, 3)
                 for item in cm.getAllOfTypeFromDB(Episode) if item.show_id == showid], 200;
         #sw = cm.getItemByID(showid, Show, 0);
-        #if (sw == None): return {"error": f"404 error show with id {showid} not found!"}, 404;
+        #if (sw == None):
+        #    return {"error": f"404 error show with id {showid} not found!"}, 404;
         #else: return [cm.getSerializedItem(Episode, ep, 3) for ep in sw.episodes], 200;
 
     def post(self, showid):
         #you must be logged in first and be authorized
-        return cm.postOrPatchAndReturnResponse(Episode, request, session, True, showid, 0, 3);
+        return cm.postOrPatchAndReturnResponse(Episode, request, session, True,
+                                               showid, 0, 3);
         
 api.add_resource(Episodes, "/shows/<int:showid>/episodes");
 
@@ -589,7 +626,8 @@ class EpisodesByID(Resource):
     def patch(self, epnum, showid):
         #you must be logged in first and be authorized
         id = self.getIDForTheEpisode(showid, epnum);
-        return cm.postOrPatchAndReturnResponse(Episode, request, session, False, showid, id, 3);
+        return cm.postOrPatchAndReturnResponse(Episode, request, session, False,
+                                               showid, id, 3);
 
     def delete(self, showid, epnum):
         #you must be logged in first and be authorized
