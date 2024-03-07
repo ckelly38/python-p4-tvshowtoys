@@ -4,40 +4,51 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import CommonClass from "./commonclass";
 
-function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
+function SellToForm({atmost, sellerID, usertoyobj, usemax, buyerisseller, delitemfunc,
+        resetstate, initbyrIDval=0}){
     const cc = new CommonClass();
-    cc.letMustBeDefinedAndNotNull(atmost);
-    cc.letMustBeDefinedAndNotNull(sellerID);
-    cc.letMustBeDefinedAndNotNull(usertoyobj);
-    cc.letMustBeDefinedAndNotNull(delitemfunc);
-    if (cc.isInteger(atmost) && cc.isInteger(sellerID));
-    else throw new Error("atmost and sellerID must both be integers!");
+    cc.letMustBeDefinedAndNotNull(atmost, "atmost");
+    cc.letMustBeDefinedAndNotNull(sellerID, "sellerID");
+    cc.letMustBeDefinedAndNotNull(usertoyobj, "usertoyobj");
+    cc.letMustBeDefinedAndNotNull(delitemfunc, "delitemfunc");
+    cc.letMustBeBoolean(usemax, "usemax");//usemax = usemy
+    cc.letMustBeBoolean(buyerisseller, "buyerisseller");
+    if (cc.isInteger(atmost) && cc.isInteger(sellerID) && cc.isInteger(initbyrIDval));
+    else throw new Error("atmost, sellerID, and initbyrIDval must be integers!");
+    if (initbyrIDval < 0) throw new Error("initbyrIDval must be at least 0!");
 
     let [errmsg, setErrMsg] = useState("");
     let [sucsmsg, setSuccessMsg] = useState("");
     let history = useHistory();
 
+    const amtfpart = (usemax ? yup.number().integer().min(0).max(atmost):
+        yup.number().integer().min(0));
+    const bidfpart = (buyerisseller ? yup.number().integer().min(1):
+        yup.number().integer().min(1).notOneOf([sellerID],
+            "You must enter something other than the sellerID for the buyerID!"));
+
     const formSchema = yup.object().shape({
-        buyerID: yup.number().integer().min(1)
-        .notOneOf([sellerID], "You must enter something other than the " +
-            "sellerID for the buyerID!")
-        .required("You must enter the buyer ID!")
+        buyerID: bidfpart.required("You must enter the buyer ID!")
         .typeError("You must enter an integer that is at least 1 and up to something!"),
-        amount: yup.number().integer().min(0).max(atmost)
-        .required("You must enter the amount you want to sell!")
-        .typeError("You must enter an integer that is at least 0 and up to " + atmost + "!"),
+        amount: amtfpart.required("You must enter the amount you want to sell!")
+        .typeError("You must enter an integer that is at least 0 and up to " +
+            atmost + "!"),
     });
 
     const formik = useFormik({
         initialValues: {
             amount: 0,
-            buyerID: 0,
+            buyerID: initbyrIDval,
         },
         validationSchema: formSchema,
         onSubmit: (values) => {
             console.log("values: ", values);
             console.log("OLD usertoyobj = ", usertoyobj);
             console.log("sellerID = " + sellerID);
+
+            const sellerisbuyer = (sellerID === values.buyerID);
+            console.log("sellerisbuyer = " + sellerisbuyer);
+
             fetch("/all-user-toy-data").then((res) => res.json()).then((data) => {
                 console.log(data);
                 if (data === undefined || data === null)
@@ -65,6 +76,11 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                     console.log("OLD usertoyobj = ", usertoyobj);
                     console.log("sellerID = " + sellerID);
 
+                    //if using my-toys, then use: usertoyobj.toy.id
+                    //if not using my-toys, then use: usertoyobj.id
+                    const mytoyid = (usemax ? usertoyobj.toy.id: usertoyobj.id);
+                    console.log("mytoyid = " + mytoyid);
+
                     //the buyer has toys
                     //but we still don't know if it has our toy
                     //if it has our toy, get the old quantity and make a patch
@@ -86,7 +102,7 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                             }
                             else
                             {
-                                if (mybuyertoys[n].toy.id === usertoyobj.toy.id)
+                                if (mybuyertoys[n].toy.id === mytoyid)
                                 {
                                     //found it
                                     buyerdataitem = mybuyertoys[n];
@@ -103,23 +119,24 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                     let baseurl = "/my-toys";
                     let bmthdnm = "";
                     let nwbyval = values.amount;
-                    let nwslval = usertoyobj.quantity - values.amount;
                     let byrurl = "" + baseurl;
-                    let slrurl = "" + baseurl + "/" + usertoyobj.toy.id;
+                    let slrurl = "" + baseurl + "/" + mytoyid;
                     if (byrusepatch)
                     {
-                        byrurl += "/" + usertoyobj.toy.id;
+                        byrurl += "/" + mytoyid;
                         bmthdnm = "PATCH";
                         nwbyval += buyerdataitem.quantity;
                     }
                     else bmthdnm = "POST";
+                    let nwslval = (sellerisbuyer ? nwbyval:
+                        (usertoyobj.quantity - values.amount));
                     let bpstdatobj = {
-                        "toy_id": usertoyobj.toy.id,
+                        "toy_id": mytoyid,
                         "user_id": values.buyerID,
                         "quantity": nwbyval
                     };
                     let spstdatobj = {
-                        "toy_id": usertoyobj.toy.id,
+                        "toy_id": mytoyid,
                         "user_id": sellerID,
                         "quantity": nwslval
                     };
@@ -181,55 +198,69 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                             }
 
                             console.log("buyer data updated successfully!");
-                            console.log("seldel = " + seldel);
-
-                            if (seldel) delitemfunc(null);
+                            console.log("sellerisbuyer = " + sellerisbuyer);
+                            if (sellerisbuyer)
+                            {
+                                console.log("buyer is the seller, so all data " +
+                                    "updated successfully!");
+                                setErrMsg("");
+                                setSuccessMsg("buyer is the seller, so all data " +
+                                    "updated successfully!");
+                                resetstate();
+                                history.push("/redirectme");
+                            }
                             else
                             {
-                                console.log("Attempting to update the seller now!");
-                                console.log("slrurl = " + slrurl);
+                                console.log("seldel = " + seldel);
 
-                                fetch(slrurl, sellerconfigobj).then((res) => res.json())
-                                .then((omdata) => {
-                                    console.log(omdata);
-            
-                                    if (omdata === undefined || omdata === null)
-                                    {
-                                        setErrMsg("there is no user toy data " +
-                                            "because response was empty!");
-                                        return;
-                                    }
-                                    else
-                                    {
-                                        let adkys = Object.keys(omdata);
-                                        console.log(adkys);
-                                        for (let n = 0; n < adkys.length; n++)
+                                if (seldel) delitemfunc(null);
+                                else
+                                {
+                                    console.log("Attempting to update the seller now!");
+                                    console.log("slrurl = " + slrurl);
+
+                                    fetch(slrurl, sellerconfigobj).then((res) => res.json())
+                                    .then((omdata) => {
+                                        console.log(omdata);
+                
+                                        if (omdata === undefined || omdata === null)
                                         {
-                                            if (adkys[n] === "error")
-                                            {
-                                                setErrMsg(omdata["error"]);
-                                                return;
-                                            }
-                                            else if (adkys[n] === "message")
-                                            {
-                                                setErrMsg(omdata["message"]);
-                                                return;
-                                            }
+                                            setErrMsg("there is no user toy data " +
+                                                "because response was empty!");
+                                            return;
                                         }
-            
-                                        console.log("seller data updated successfully!");
-                                        setErrMsg("");
-                                        setSuccessMsg("seller and buyer data " +
-                                            "updated successfully!");
-                                        resetstate();
-                                        history.push("/redirectme");
-                                    }
-                                }).catch((omerr) => {
-                                    console.error("there was an error putting the data " +
-                                        "on the server for the seller!");
-                                    console.error(omerr);
-                                    setErrMsg(omerr.message);
-                                });
+                                        else
+                                        {
+                                            let adkys = Object.keys(omdata);
+                                            console.log(adkys);
+                                            for (let n = 0; n < adkys.length; n++)
+                                            {
+                                                if (adkys[n] === "error")
+                                                {
+                                                    setErrMsg(omdata["error"]);
+                                                    return;
+                                                }
+                                                else if (adkys[n] === "message")
+                                                {
+                                                    setErrMsg(omdata["message"]);
+                                                    return;
+                                                }
+                                            }
+                
+                                            console.log("seller data updated successfully!");
+                                            setErrMsg("");
+                                            setSuccessMsg("seller and buyer data " +
+                                                "updated successfully!");
+                                            resetstate();
+                                            history.push("/redirectme");
+                                        }
+                                    }).catch((omerr) => {
+                                        console.error("there was an error putting the data " +
+                                            "on the server for the seller!");
+                                        console.error(omerr);
+                                        setErrMsg(omerr.message);
+                                    });
+                                }
                             }
                         }
                     }).catch((omerr) => {

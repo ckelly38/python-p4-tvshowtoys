@@ -730,7 +730,7 @@ function EpisodeToyShowOrList(props){
         );
     }//END OF GEN ERROR ITEM ON LIST()
 
-    function genHeaderRowForList()
+    function genAndGetMyTDSForHeaderRowForList()
     {
         //if headername has Name in it, then use namecol classname
         //if headername is Season #, then use seasnum classname
@@ -751,7 +751,11 @@ function EpisodeToyShowOrList(props){
         let mytds = cc.addItemToBeginningOfList(myotds, usemytd, props.usemy);
         console.log("mytds = ", mytds);
 
-        return (<tr className="border">{mytds}</tr>);
+        return mytds;
+    }
+    function genHeaderRowForList()
+    {
+        return (<tr className="border">{genAndGetMyTDSForHeaderRowForList()}</tr>);
     }
 
     function delItem(event)
@@ -800,6 +804,7 @@ function EpisodeToyShowOrList(props){
     {
         //need to know the headers
         //needs to know if it is using the align class or not
+        console.log("INSIDE OF DISPLAY ITEM IN A LIST():");
         console.log("props.usemy = " + props.usemy);
 
         let myhlist = cc.getHeadersForType(props.typenm, props.usemy);
@@ -816,9 +821,10 @@ function EpisodeToyShowOrList(props){
 
         //console.warn("mydataobj = ", mydataobj);
         //console.warn("typenm = " + props.typenm);
+        console.log("props.simpusrobj.instatus = " + props.simpusrobj.instatus);
 
         let usemytd = null;
-        if (props.usemy)
+        if (props.simpusrobj.instatus && (props.usemy || props.typenm === "Toy"))
         {
             //need to know who to sell it to and how much
             //if selling all, sell all to whomever and then DELETE it
@@ -828,16 +834,39 @@ function EpisodeToyShowOrList(props){
             if (props.typenm === "Episode") mybtnnm = "Unwatch " + props.typenm;
             else if (props.typenm === "Toy") mybtnnm = "Throw Out All Of " + props.typenm;
             else throw new Error("typenm must be Episode, or Toy, but it was not!");
+            let mysellerID = -1;
+            let mytoymax = -1;
+            let mybuyerID = 0;
+            let byrcanbslr = false; 
+            if (props.typenm === "Toy")
+            {
+                if (props.usemy)
+                {
+                    mysellerID = props.simpusrobj.id;
+                    mytoymax = props.epobj.quantity;
+                }
+                else
+                {
+                    mysellerID = props.epobj.show.owner_id;
+                    mybuyerID = props.simpusrobj.id;
+                    byrcanbslr = true;
+                }
+            }
+            console.log("mysellerID = " + mysellerID);
+            console.log("mybuyerID = " + mybuyerID);
+            console.log("byrcanbslr = " + byrcanbslr);
+            console.log("mytoymax = " + mytoymax);
             
             usemytd = (<td key={"ckbox" + props.epobj.id}>
-                <button onClick={delItem}>{mybtnnm}</button>
+                {props.usemy ? <button onClick={delItem}>{mybtnnm}</button>: null}
                 {(props.typenm === "Toy") ?
                     <button onClick={(event) => setShowSellToyForm(!showselltoy)}>
                         {(showselltoy) ? "Hide Form":
                             "Show Transfer Toy Form"}</button> : null}
                 {(props.typenm === "Toy" && showselltoy) ?
-                    <SellToForm sellerID={props.simpusrobj.id} usertoyobj={props.epobj}
-                        atmost={props.epobj.quantity} delitemfunc={delItem}
+                    <SellToForm sellerID={mysellerID} usertoyobj={props.epobj}
+                        atmost={mytoymax} usemax={props.usemy} initbyrIDval={mybuyerID}
+                        buyerisseller={byrcanbslr} delitemfunc={delItem}
                         resetstate={resetState} /> : null}</td>);
         }
 
@@ -1008,7 +1037,8 @@ function EpisodeToyShowOrList(props){
             return (<td key={fcolkynm} className={clsnm}>{itemval}</td>);
         });
 
-        let mytds = cc.addItemToBeginningOfList(myotds, usemytd, props.usemy);
+        let mytds = cc.addItemToBeginningOfList(myotds, usemytd,
+            !cc.isItemNullOrUndefined(usemytd));
         console.log("mytds = ", mytds);
 
         let kynmidnm = "";
@@ -1403,6 +1433,8 @@ function EpisodeToyShowOrList(props){
             else throw new Error(invalidTypeErrMsg);
             
             myeps = mylist.map((ep) => {
+                console.log("ep = ", ep);
+
                 let kynm = "";
                 let myepid = -1;
                 if (props.usemy)
@@ -1451,7 +1483,7 @@ function EpisodeToyShowOrList(props){
         console.log("SHOWNAME = " + showname);
 
         let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
-        let mytds = genHeaderRowForList();
+        let myotds = genAndGetMyTDSForHeaderRowForList();//was genHeaderRowForList()
         let myhitemstr = "";
         let usenoshowname = false;
         if (props.typenm === "Show") usenoshowname = true;
@@ -1497,6 +1529,19 @@ function EpisodeToyShowOrList(props){
                     <Link to={"/shows/" + params.showid}>{showname}</Link></span>);
             }
         }
+        console.log("myotds = ", myotds);
+        console.log("props.simpusrobj.instatus = " + props.simpusrobj.instatus);
+        console.log("props.usemy = " + props.usemy);
+        console.log("props.typenm = " + props.typenm);
+        
+        let mytds = [];
+        if (props.simpusrobj.instatus && (props.usemy || props.typenm === "Toy"))
+        {
+            mytds = [<td key={"buyremtoysbtn"} className="border">Buy/Remove Toys</td>];
+            myotds.forEach((mitem) => mytds.push(mitem));
+        }
+        else mytds = myotds;
+        const myhdrow = (<tr className="border">{mytds}</tr>);
         console.log("mytds = ", mytds);
         console.log("cusrisshowowner = " + cusrisshowowner);
         console.log("err = " + err);
@@ -1540,7 +1585,7 @@ function EpisodeToyShowOrList(props){
                 <tbody>{myprofittds}</tbody>
             </table><h2>Total Profit: ${tprofit}</h2></div> : null}
             <table className="border">
-                <thead>{mytds}</thead>
+                <thead>{myhdrow}</thead>
                 <tbody>{myeps}</tbody>
             </table>
         </div>);
