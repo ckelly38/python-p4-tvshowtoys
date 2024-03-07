@@ -70,7 +70,7 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                     //if it has our toy, get the old quantity and make a patch
                     //if it does not have our toy, make a post
                     let buyerdataitem = null;
-                    let usepatch = false;
+                    let byrusepatch = false;
                     //no buyer toys that means POST
                     if (cc.isStringEmptyNullOrUndefined(mybuyertoys));
                     else
@@ -90,23 +90,25 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                                 {
                                     //found it
                                     buyerdataitem = mybuyertoys[n];
-                                    usepatch = true;
+                                    byrusepatch = true;
                                     break;
                                 }
                                 //else;//do nothing
                             }
                         }
                     }
-                    console.log("usepatch = ", usepatch);
+                    console.log("byrusepatch = ", byrusepatch);
                     console.log("buyerdataitem = ", buyerdataitem);
 
-                    let murl = "/my-toys";
+                    let baseurl = "/my-toys";
                     let bmthdnm = "";
                     let nwbyval = values.amount;
                     let nwslval = usertoyobj.quantity - values.amount;
-                    if (usepatch)
+                    let byrurl = "" + baseurl;
+                    let slrurl = "" + baseurl + "/" + usertoyobj.toy.id;
+                    if (byrusepatch)
                     {
-                        murl += "/" + usertoyobj.toy.id;
+                        byrurl += "/" + usertoyobj.toy.id;
                         bmthdnm = "PATCH";
                         nwbyval += buyerdataitem.quantity;
                     }
@@ -154,8 +156,10 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                     console.log("nofetch = " + nofetch);
 
                     if (nofetch) return;
+                    
+                    console.log("byrurl = " + byrurl);
 
-                    fetch(murl, buyerconfigobj).then((res) => res.json()).then((mdata) => {
+                    fetch(byrurl, buyerconfigobj).then((res) => res.json()).then((mdata) => {
                         console.log(mdata);
 
                         if (mdata === undefined || mdata === null)
@@ -177,11 +181,15 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                             }
 
                             console.log("buyer data updated successfully!");
+                            console.log("seldel = " + seldel);
 
                             if (seldel) delitemfunc(null);
                             else
                             {
-                                fetch(murl, sellerconfigobj).then((res) => res.json())
+                                console.log("Attempting to update the seller now!");
+                                console.log("slrurl = " + slrurl);
+
+                                fetch(slrurl, sellerconfigobj).then((res) => res.json())
                                 .then((omdata) => {
                                     console.log(omdata);
             
@@ -200,6 +208,11 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
                                             if (adkys[n] === "error")
                                             {
                                                 setErrMsg(omdata["error"]);
+                                                return;
+                                            }
+                                            else if (adkys[n] === "message")
+                                            {
+                                                setErrMsg(omdata["message"]);
                                                 return;
                                             }
                                         }
@@ -243,7 +256,7 @@ function SellToForm({atmost, sellerID, usertoyobj, delitemfunc, resetstate}){
         //useerrcolor = false;//do nothing
     }
     else useerrcolor = true;
-    console.log("useerrcolor = " + useerrcolor);
+    //console.log("useerrcolor = " + useerrcolor);
 
     let bgcolor = cc.getBGColorToBeUsed(useerrcolor, "Toy");
     //lime for login, yellow for signup, pink for prefs

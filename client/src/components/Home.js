@@ -5,6 +5,7 @@ import CommonClass from "./commonclass";
 function Home({simpusrobj}) {
     let cc = new CommonClass();
     cc.letMustBeDefinedAndNotNull(simpusrobj);
+    
     const mymsg = "If you have the appropriate access level, you can create new ";
     const logoutcautionmsg = "reloading the page, navigating to /login, or sometimes " +
         "modifying urls can log you out.";
@@ -12,10 +13,15 @@ function Home({simpusrobj}) {
     const lgiactionsmsg = "If you are logged in, you can view your ";
     const lvtwomsg = "If you have the appropriate access level (2): then you can add or " +
         "remove episodes, toys, and shows.";
+    let welcomemsg = "";
+    if (simpusrobj.instatus)
+    {
+        welcomemsg = "Welcome " + simpusrobj.username + ". Your ID# is " +
+            simpusrobj.id + ".";
+    }
+    else welcomemsg = "You are not logged in!";
 
-    return (<div><h1>Home</h1>
-        {(simpusrobj.instatus) ? <h2>Welcome {simpusrobj.username}</h2>:
-        <h2>You are not logged in!</h2>}
+    return (<div><h1>Home</h1><h2>{welcomemsg}</h2>
         <p>Dear User, simply <b>{logoutcautionmsg}</b> So be careful.</p>
         <p>{vwfpartmsg}<Link to="/shows">shows</Link> and <Link to="/shows">toys</Link>
             {" we have and sell on the site."}</p>

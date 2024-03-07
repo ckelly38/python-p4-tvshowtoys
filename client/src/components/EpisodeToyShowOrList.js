@@ -658,8 +658,10 @@ function EpisodeToyShowOrList(props){
         return {__html: "" + mdataobj.description};
     }
 
-    function genErrorItemOnList()
+    function genErrorItemOnList(usenormalbgcolor=false)
     {
+        cc.letMustBeBoolean(usenormalbgcolor, "usenormalbgcolor");
+
         let cntrnuma = -1;
         let cntrnumb = -1;
         let itemname = "";
@@ -694,30 +696,37 @@ function EpisodeToyShowOrList(props){
         else throw new Error(invalidTypeErrMsg);
         console.log("props.usemy = " + props.usemy);
 
+        //figure out the options for normal border, but no information
+        //"redbgclrborder" or "border"
+        //"redbgclrtxtcntrborder" or "seasnumalign"
+        const mynocntrclsnm = (usenormalbgcolor ? "border": "redbgclrborder");
+        const mycntrclsnm = (usenormalbgcolor ? "seasnumalign": "redbgclrtxtcntrborder");
+        
+
         return (<tr key={kynm} className="border">
-            {(props.usemy) ? <td className="redbgclrborder">Cannot Remove It!</td>:
-            <td className="redbgclrborder">{itemname}</td>}
+            {(props.usemy) ? <td className={mynocntrclsnm}>Cannot Remove It!</td>:
+            <td className={mynocntrclsnm}>{itemname}</td>}
             {(props.typenm === "Toy" || props.usemy) ?
-            <td className="redbgclrborder">{myinitdatatoyobj.showname}</td>: null}
-            {(props.usemy) ? <td className="redbgclrborder">{itemname}</td>: null}
+            <td className={mynocntrclsnm}>{myinitdatatoyobj.showname}</td>: null}
+            {(props.usemy) ? <td className={mynocntrclsnm}>{itemname}</td>: null}
             {(props.typenm === "Toy") ? null :
                 <>
-                    <td className="redbgclrtxtcntrborder">{cntrnuma}</td>
-                    <td className="redbgclrtxtcntrborder">{cntrnumb}</td>
+                    <td className={mycntrclsnm}>{cntrnuma}</td>
+                    <td className={mycntrclsnm}>{cntrnumb}</td>
                 </>
             }
-            {(props.typenm === "Show") ? <><td className="redbgclrtxtcntrborder">
+            {(props.typenm === "Show") ? <><td className={mycntrclsnm}>
                 {myinitdatashowobj.numepisodesperseason}</td>
-            <td className="redbgclrborder">Watch Link</td></>: null}
+            <td className={mynocntrclsnm}>Watch Link</td></>: null}
             {(props.typenm === "Toy") ?
-            <td className="redbgclrtxtcntrborder">{myinitdatatoyobj.price}</td> : null}
+            <td className={mycntrclsnm}>{myinitdatatoyobj.price}</td> : null}
             {(props.typenm === "Show") ?
-            <td className="redbgclrborder">Toys Link</td>: null}
+            <td className={mynocntrclsnm}>Toys Link</td>: null}
             {(props.typenm === "Episode") ?
-                <td className="redbgclrborder">Watch Link</td>: null}
+                <td className={mynocntrclsnm}>Watch Link</td>: null}
             {(props.usemy && props.typenm === "Toy") ?
-            <td className="redbgclrtxtcntrborder">0</td> : null}
-            <td className="redbgclrborder" dangerouslySetInnerHTML={createMarkUp()}></td></tr>
+            <td className={mycntrclsnm}>0</td> : null}
+            <td className={mynocntrclsnm} dangerouslySetInnerHTML={createMarkUp()}></td></tr>
         );
     }//END OF GEN ERROR ITEM ON LIST()
 
@@ -1282,14 +1291,14 @@ function EpisodeToyShowOrList(props){
                         console.log("OLD ITEM ON LIST = itemsused[" + usedindx + "] = ",
                             itemsused[usedindx]);
                         
-                            //combine the quantities
+                        //combine the quantities
                         let oldquantity = itemsused[usedindx].quantity;
                         itemsused[usedindx].quantity = oldquantity + mitem.quantity;
                         console.log("oldquantity = " + oldquantity);
                         console.log("NEW quantity = itemsused[" + usedindx + "].quantity = " +
                             itemsused[usedindx].quantity);
                         
-                            //if the current user owns the toy, for both,
+                        //if the current user owns the toy, for both,
                         //then price and profit: 0
                         //compute the normal profit: price * quantity
                         //computed price: profit / quantity
@@ -1431,6 +1440,12 @@ function EpisodeToyShowOrList(props){
             });
         }
         console.log("myeps = ", myeps);
+
+        if (cc.isStringEmptyNullOrUndefined(myeps))
+        {
+            myeps = [genErrorItemOnList(true)];
+        }
+        //else;//do nothing
         
         //let mdataobj = getDataObjectFromType();
         console.log("SHOWNAME = " + showname);
