@@ -525,9 +525,8 @@ function EpisodeToyShowOrList(props){
                                             "user_id": props.simpusrobj.id
                                         })
                                     };
-                                    fetch("/my-episodes", myconfigobj).
-                                    then((res) => res.json())
-                                    .then((odata) => {
+                                    fetch("/my-episodes", myconfigobj)
+                                    .then((res) => res.json()).then((odata) => {
                                         console.log(odata);
                                     }).catch((merr) => {
                                         console.error("there was an error adding watched " +
@@ -618,7 +617,22 @@ function EpisodeToyShowOrList(props){
 
     if (resetCompState) resetState();
     //else;//do nothing
+
+    //WHEN TRUE AND LOGGED IN ONLY THE ERROR PAGE WILL BE DISPLAYED
+    const disperrpgloggedin = false;
+    if (disperrpgloggedin)
+    {
+        if (props.simpusrobj.instatus)
+        {
+            if (err);
+            else setError(true);
+        }
+        //else;//do nothing
+    }
+    //else;//do nothing
+    
     console.log("AFTER LOCATION SET!");
+
 
     function resetState()
     {
@@ -646,7 +660,7 @@ function EpisodeToyShowOrList(props){
         if (props.typenm === "Episode") mdataobj = myepdataobj;
         else if (props.typenm === "Toy") mdataobj = mytoydataobj;
         else if (props.typenm === "Show") mdataobj = myshowdataobj;
-        else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+        else throw new Error(invalidTypeErrMsg);
         console.log("MDATAOBJ FOR LIST: ", mdataobj);
         
         return mdataobj;
@@ -704,8 +718,9 @@ function EpisodeToyShowOrList(props){
         
 
         return (<tr key={kynm} className="border">
-            {(props.usemy) ? <td className={mynocntrclsnm}>Cannot Remove It!</td>:
-            <td className={mynocntrclsnm}>{itemname}</td>}
+            {(props.simpusrobj.instatus) ? <td className={mynocntrclsnm}>
+                {"Cannot Remove It!"}</td>: null}
+            {(props.usemy) ? null : <td className={mynocntrclsnm}>{itemname}</td>}
             {(props.typenm === "Toy" || props.usemy) ?
             <td className={mynocntrclsnm}>{myinitdatatoyobj.showname}</td>: null}
             {(props.usemy) ? <td className={mynocntrclsnm}>{itemname}</td>: null}
@@ -730,7 +745,7 @@ function EpisodeToyShowOrList(props){
         );
     }//END OF GEN ERROR ITEM ON LIST()
 
-    function genAndGetMyTDSForHeaderRowForList()
+    function genAndGetMyTDSForHeaderRowForList(addbgremcol=false)
     {
         //if headername has Name in it, then use namecol classname
         //if headername is Season #, then use seasnum classname
@@ -738,24 +753,45 @@ function EpisodeToyShowOrList(props){
         //if headername has Description in it, then use border classname
         //if headername has Link in it, then use border classname
         //default classname is border
+        console.log("INSIDE OF GEN HEADER ROW TDS() FOR LIST:");
+
+        cc.letMustBeBoolean(addbgremcol, "addbgremcol");
+        console.log("addbgremcol = " + addbgremcol);
         console.log("props.usemy = " + props.usemy);
 
         let myhlist = cc.getHeadersForType(props.typenm, props.usemy);
 
         let usemytd = null;
-        if (props.usemy) usemytd = (<td key={"remeps"}>Remove {props.typenm}</td>);
+        if (addbgremcol)
+        {
+            let remnm = "" + props.typenm + "s";
+            if (props.typenm === "Episode")
+            {
+                if (props.usemy) remnm = "Unwatch " + remnm;
+                else remnm = "Remove " + remnm;
+            }
+            else if (props.typenm === "Toy") remnm = "Buy/Remove " + remnm;
+            else if (props.typenm === "Show") remnm = "Remove " + remnm;
+            else throw new Error(invalidTypeErrMsg);
+            usemytd = (<td key={"remeps"}>{remnm}</td>);
+        }
+        //else;//do nothing
 
         let myotds = myhlist.map((mstr) =>
             <td key={mstr} className={cc.getCSSClassNameForHeader(mstr, false)}>{mstr}</td>);
         
-        let mytds = cc.addItemToBeginningOfList(myotds, usemytd, props.usemy);
+        let mytds = cc.addItemToBeginningOfList(myotds, usemytd, addbgremcol);
         console.log("mytds = ", mytds);
 
         return mytds;
     }
-    function genHeaderRowForList()
+    function genHeaderRowForList(addbgremcol=false)
     {
-        return (<tr className="border">{genAndGetMyTDSForHeaderRowForList()}</tr>);
+        console.log("INSIDE OF GEN HEADER ROW FOR LIST():");
+        console.log("addbgremcol = " + addbgremcol);
+
+        return (<tr className="border">
+            {genAndGetMyTDSForHeaderRowForList(addbgremcol)}</tr>);
     }
 
     function delItem(event)
@@ -824,16 +860,23 @@ function EpisodeToyShowOrList(props){
         console.log("props.simpusrobj.instatus = " + props.simpusrobj.instatus);
 
         let usemytd = null;
-        if (props.simpusrobj.instatus && (props.usemy || props.typenm === "Toy"))
+        if (props.simpusrobj.instatus)// && (props.usemy || props.typenm === "Toy")
         {
             //need to know who to sell it to and how much
             //if selling all, sell all to whomever and then DELETE it
             console.log("usertoys = ", usertoys);
                             
             let mybtnnm = "";
-            if (props.typenm === "Episode") mybtnnm = "Unwatch " + props.typenm;
+            if (props.typenm === "Episode")
+            {
+                if (props.usemy) mybtnnm = "Unwatch " + props.typenm;
+                else mybtnnm = "Remove " + props.typenm;
+            }
             else if (props.typenm === "Toy") mybtnnm = "Throw Out All Of " + props.typenm;
-            else throw new Error("typenm must be Episode, or Toy, but it was not!");
+            else if (props.typenm === "Show") mybtnnm = "Remove " + props.typenm;
+            else throw new Error(invalidTypeErrMsg);
+            console.log("mybtnnm = " + mybtnnm);
+            
             let mysellerID = -1;
             let mytoymax = -1;
             let mybuyerID = 0;
@@ -856,9 +899,40 @@ function EpisodeToyShowOrList(props){
             console.log("mybuyerID = " + mybuyerID);
             console.log("byrcanbslr = " + byrcanbslr);
             console.log("mytoymax = " + mytoymax);
+            console.log("props.epobj = ", props.epobj);
+
+            //if a show owner is logged in, then let them remove the show, episodes,
+            //or toys
+            //if logged in that column will show up, so I must leave the user a message
+            //if not logged in, do not show at all.
+            let isshowowner = false;
+            if (props.simpusrobj.instatus)
+            {
+                if (props.usemy) isshowowner = true;
+                else
+                {
+                    //need to check to see if the current user is a show owner
+                    console.log("DETERMINING IF CURRENT USER IS A SHOW OWNER OR " +
+                        "NOT PER ITEM!");
+                    if (props.typenm === "Toy" || props.typenm === "Episode")
+                    {
+                        isshowowner = (props.epobj.show.owner_id === props.simpusrobj.id);
+                    }
+                    else if (props.typenm === "Show")
+                    {
+                        isshowowner = (props.epobj.owner_id === props.simpusrobj.id);
+                    }
+                    else throw new Error(invalidTypeErrMsg);
+                }
+                if (isshowowner) console.log("the current user owns the show!");
+                else console.log("the current user does not own the show!");
+            }
+            else console.log("You are not logged in! So not a show owner!");
             
             usemytd = (<td key={"ckbox" + props.epobj.id}>
-                {props.usemy ? <button onClick={delItem}>{mybtnnm}</button>: null}
+                {props.simpusrobj.instatus ? (isshowowner ?
+                    <button onClick={delItem}>{mybtnnm}</button>:
+                    (props.typenm === "Toy" ? null: "Cannot Remove It.")): null}
                 {(props.typenm === "Toy") ?
                     <button onClick={(event) => setShowSellToyForm(!showselltoy)}>
                         {(showselltoy) ? "Hide Form":
@@ -870,8 +944,7 @@ function EpisodeToyShowOrList(props){
                         resetstate={resetState} /> : null}</td>);
         }
 
-        let myotds = myhlist.map((mstr) =>
-        {
+        let myotds = myhlist.map((mstr) => {
             console.log("mstr = " + mstr);
             
             if (mstr === "Description")
@@ -994,8 +1067,8 @@ function EpisodeToyShowOrList(props){
 
                         mylnkky = "" + props.typenm.toLowerCase() + "namelink" +
                             props.epobj[epobky].id;
-                        mlval = "/shows/" + props.epobj[epobky].show.id + "/" + epobky + "s/" +
-                            props.epobj[epobky][olnkvalky];
+                        mlval = "/shows/" + props.epobj[epobky].show.id + "/" +
+                            epobky + "s/" + props.epobj[epobky][olnkvalky];
                     }
                     else
                     {
@@ -1066,8 +1139,7 @@ function EpisodeToyShowOrList(props){
         const epspersnnameslist = cc.getAcceptedNamesForNumEpisodesPerSeason();
         console.log("epspersnnameslist = ", epspersnnameslist);
 
-        let mytds = myhlist.map((mstr) =>
-        {
+        let mytds = myhlist.map((mstr) => {
             console.log("mstr = " + mstr);
 
             let mky = cc.getTheDataKeyNameFromString(mstr, epspersnnameslist);
@@ -1182,8 +1254,8 @@ function EpisodeToyShowOrList(props){
                 //console.warn("*mylnkky = " + (mykynm + mydataobj.id));
                 //console.warn("*mydivky = linkfortoys" + mydataobj.id);
                 return (<div key={"linkfortoyscontainer" + mydataobj.id}>
-                    <div key={"linkfortoys" + mydataobj.id}>
-                {mstr}: <Link key={mykynm + mydataobj.id} to={mlval}>Toys</Link></div></div>);
+                    <div key={"linkfortoys" + mydataobj.id}>{mstr + ": "}
+                    <Link key={mykynm + mydataobj.id} to={mlval}>Toys</Link></div></div>);
             }
             else
             {
@@ -1372,43 +1444,51 @@ function EpisodeToyShowOrList(props){
         return [myprofittds, tprofit];
     }
 
-
+    console.log("");
     console.log("NEW loaded = " + loaded);
+    console.log("resetCompState = " + resetCompState);
 
-    if (loaded);
+    let retldingcontr = false;
+    if (loaded) retldingcontr = resetCompState;
     else
     {
         if (err) setLoaded(true);
-        else 
-        {
-            if (props.useinlist)
-            {
-                if (props.epobj === undefined || props.epobj === null)
-                {
-                    //console.warn("NO EPOBJ!");
-                    //console.warn("*kynmidnm = loadingrow0");
-                    //console.warn("*kynmidnm = loadingcol0");
-                    return (<tr key={"loadingrow0"}>
-                    <td key={"loadingcol0"}>loading...</td></tr>);
-                }
-                else
-                {
-                    //console.warn("THERE IS AN EPOBJ!");
-                    //console.warn("*kynmidnm = loadingrow" + props.epobj.id);
-                    //console.warn("*kynmidnm = loadingcol" + props.epobj.id);
-                    return (<tr key={"loadingrow" + props.epobj.id}>
-                        <td key={"loadingcol" + props.epobj.id}>loading...</td></tr>);
-                }
-            }
-            else return <div>loading...</div>;
-        }
+        else retldingcontr = true;
     }
+    console.log("retldingcontr = " + retldingcontr);
+    
+    if (retldingcontr)
+    {
+        if (props.useinlist)
+        {
+            if (props.epobj === undefined || props.epobj === null)
+            {
+                //console.warn("NO EPOBJ!");
+                //console.warn("*kynmidnm = loadingrow0");
+                //console.warn("*kynmidnm = loadingcol0");
+                return (<tr key={"loadingrow0"}>
+                    <td key={"loadingcol0"}>loading...</td></tr>);
+            }
+            else
+            {
+                //console.warn("THERE IS AN EPOBJ!");
+                //console.warn("*kynmidnm = loadingrow" + props.epobj.id);
+                //console.warn("*kynmidnm = loadingcol" + props.epobj.id);
+                return (<tr key={"loadingrow" + props.epobj.id}>
+                    <td key={"loadingcol" + props.epobj.id}>loading...</td></tr>);
+            }
+        }
+        else return <div>loading...</div>;
+    }
+    //else;//do nothing
+
     console.log("FINAL loaded = " + loaded);
     console.log("FINAL mytoydataobj = ", mytoydataobj);
     console.log("FINAL myshowdataobj = ", myshowdataobj);
     console.log("FINAL myepdataobj = ", myepdataobj);
     console.log("FINAL showname = " + showname);
     console.log("FINAL cusrisshowowner = " + cusrisshowowner);
+    console.log("");
 
     let myeps = null;
     let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
@@ -1431,6 +1511,13 @@ function EpisodeToyShowOrList(props){
             else if (props.typenm === "Toy") mylist = toys;
             else if (props.typenm === "Show") mylist = shows;
             else throw new Error(invalidTypeErrMsg);
+            console.log("episodes = ", episodes);
+            console.log("shows = ", shows);
+            console.log("toys = ", toys);
+            console.log("usertoys = ", usertoys);
+            console.log("mylist = ", mylist);
+            console.log("props.usemy = " + props.usemy);
+            console.log("props.typenm = " + props.typenm);
             
             myeps = mylist.map((ep) => {
                 console.log("ep = ", ep);
@@ -1481,9 +1568,16 @@ function EpisodeToyShowOrList(props){
         
         //let mdataobj = getDataObjectFromType();
         console.log("SHOWNAME = " + showname);
+        console.log("props.simpusrobj.instatus = " + props.simpusrobj.instatus);
+        console.log("props.usemy = " + props.usemy);
+        console.log("props.typenm = " + props.typenm);
 
+        //const addbgremcol = (props.simpusrobj.instatus);
+        // && (props.usemy || props.typenm === "Toy")
+        //console.log("addbgremcol = " + addbgremcol);
+        
         let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
-        let myotds = genAndGetMyTDSForHeaderRowForList();//was genHeaderRowForList()
+        let myotds = genHeaderRowForList(props.simpusrobj.instatus);
         let myhitemstr = "";
         let usenoshowname = false;
         if (props.typenm === "Show") usenoshowname = true;
@@ -1533,16 +1627,18 @@ function EpisodeToyShowOrList(props){
         console.log("props.simpusrobj.instatus = " + props.simpusrobj.instatus);
         console.log("props.usemy = " + props.usemy);
         console.log("props.typenm = " + props.typenm);
+        //console.log("addbgremcol = " + addbgremcol);
         
-        let mytds = [];
-        if (props.simpusrobj.instatus && (props.usemy || props.typenm === "Toy"))
-        {
-            mytds = [<td key={"buyremtoysbtn"} className="border">Buy/Remove Toys</td>];
-            myotds.forEach((mitem) => mytds.push(mitem));
-        }
-        else mytds = myotds;
-        const myhdrow = (<tr className="border">{mytds}</tr>);
-        console.log("mytds = ", mytds);
+        
+        //let mytds = [];
+        //if (props.simpusrobj.instatus && (props.usemy || props.typenm === "Toy"))
+        //{
+        //    mytds = [<td key={"buyremtoysbtn"} className="border">Buy/Remove Toys</td>];
+        //    myotds.forEach((mitem) => mytds.push(mitem));
+        //}
+        //else mytds = myotds;
+        //const myhdrow = (<tr className="border">{mytds}</tr>);
+        //console.log("mytds = ", mytds);
         console.log("cusrisshowowner = " + cusrisshowowner);
         console.log("err = " + err);
         console.log("");
@@ -1572,20 +1668,21 @@ function EpisodeToyShowOrList(props){
             <h1>{myhitemstr}{props.usemy ? null: mysnmitemval}</h1>
             {(props.usemy && props.typenm === "Toy" && cusrisshowowner) ?
             <div><h2>Total Profit: ${tprofit}</h2>
-            <table className="border">
+            <table key="toyprofittable" className="border">
                 <thead>
-                    <tr className="border">
-                        <td className="border">Toy ID#</td>
-                        <td className="border">Total Items Sold</td>
-                        <td className="border">Actual Price $</td>
-                        <td className="border">Price $</td>
-                        <td className="border">Total Profit $</td>
+                    <tr key="hrwforprofittable" className="border">
+                        <td key="toyIDprofittable" className="border">Toy ID#</td>
+                        <td key="itemsoldprofittable" className="border">Total Items Sold</td>
+                        <td key="actualpriceprofittable" className="border">Actual Price $</td>
+                        <td key="computedpriceprofittable" className="border">Price $</td>
+                        <td key="computedtotalprofitfortable"
+                            className="border">Total Profit $</td>
                     </tr>
                 </thead>
                 <tbody>{myprofittds}</tbody>
             </table><h2>Total Profit: ${tprofit}</h2></div> : null}
             <table className="border">
-                <thead>{myhdrow}</thead>
+                <thead>{myotds}</thead>
                 <tbody>{myeps}</tbody>
             </table>
         </div>);

@@ -344,8 +344,8 @@ class CommonClass{
         //price (center)
             //description
 
-        let centeredheaders = ["Season #", "Episode #", "Price", "# Of Episodes", "# Of Seasons",
-            "# Of Episodes", "~ Total Episodes/Season"];
+        let centeredheaders = ["Season #", "Episode #", "Price", "# Of Episodes",
+            "# Of Seasons", "# Of Episodes", "~ Total Episodes/Season"];
         this.letMustBeDefinedAndNotNull(hstr, "hstr");
         for (let n = 0; n < centeredheaders.length; n++)
         {
