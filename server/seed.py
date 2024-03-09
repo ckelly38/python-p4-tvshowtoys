@@ -48,7 +48,7 @@ if __name__ == '__main__':
         pm = Show(id=1,
                   name="Pokemon",
                   description="Ash Ketchum and friends go around training and catching " +
-                  "pokemon and also protects from the bounty hunters called Team Rocket " +
+                  "Pokemon and also protects from the bounty hunters called Team Rocket " +
                   "and others trying to use Pokemon for their own evil purposes!",
                   owner=cn);
         print(pm);
@@ -77,7 +77,7 @@ if __name__ == '__main__':
                           show=pm,
                           description="This shows what Ash is normally like, how he is " +
                           "often late and likes to sleep in and missed his chance at " +
-                          "getting an easy pokemon to train and got stuck with Pickachu " +
+                          "getting an easy Pokemon to train and got stuck with Pickachu " +
                           "who loved zapping him... It was not until later that Ash " +
                           "saved Pickachu from Team Rocket that Pickachu bonded with " +
                           "Ash well.");

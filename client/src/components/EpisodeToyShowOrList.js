@@ -49,6 +49,8 @@ function EpisodeToyShowOrList(props){
     cc.letMustBeBoolean(props.useinlist, "props.useinlist");
     cc.letMustBeBoolean(props.uselist, "props.uselist");
     cc.letMustBeBoolean(props.usemy, "props.usemy");
+    cc.letMustBeBoolean(props.editmode, "props.editmode");
+    cc.letMustBeDefinedAndNotNull(props.seteditmode, "props.seteditmode");
 
     if (props.useinlist)
     {
@@ -644,6 +646,7 @@ function EpisodeToyShowOrList(props){
         setMyShowDataObj(myinitdatashowobj);
         setMyToyDataObj(myinitdatatoyobj);
         setMyEpDataObj(myinitdataepobj);
+        props.seteditmode(false);
         console.log("RESETTING SHOWNAME HERE!");
         setShowName("Show Name");
         mres = null;
@@ -940,6 +943,11 @@ function EpisodeToyShowOrList(props){
                         buyerisseller={byrcanbslr} delitemfunc={delItem}
                         resetstate={resetState} /> : null}</td>);
         }
+        const dispeditmode = (props.simpusrobj.instatus && props.editmode && !props.usemy);
+        console.log("props.editmode = " + props.editmode);
+        console.log("props.usemy = " + props.usemy);
+        console.log("dispeditmode = " + dispeditmode);
+        console.log("");
 
         let myotds = myhlist.map((mstr) => {
             console.log("mstr = " + mstr);
@@ -956,8 +964,12 @@ function EpisodeToyShowOrList(props){
                 else
                 {
                     //console.warn("*mydescky = normal" + basekynm);
+                    const mynonedititem = mydataobj.description;
+                    const myedititem = (<textarea name="description"
+                        style={{minWidth: "500px", minHeight: "120px"}}    
+                        value={mydataobj.description} onChange={null} />);
                     return (<td key={"normal" + basekynm} className="border">
-                        {mydataobj.description}</td>);
+                        {dispeditmode ? myedititem: mynonedititem}</td>);
                 }
             }
 
@@ -1074,7 +1086,11 @@ function EpisodeToyShowOrList(props){
                             props.epobj.id;
                     }
                     //console.warn("*mylnkky = " + mylnkky);
-                    itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);
+                    const mynonedititem = mydataobj[mky];
+                    const myeditmodeitem = (<input type="text" name={mky}
+                        value={mydataobj[mky]} onChange={null} />);
+                    const mydispitem = (dispeditmode ? myeditmodeitem: mynonedititem);
+                    itemval = (<Link key={mylnkky} to={mlval}>{mydispitem}</Link>);
                 }
                 else if (mstr === "Show Name")
                 {
@@ -1082,19 +1098,31 @@ function EpisodeToyShowOrList(props){
                     let mylnkky = "shownamelink" + mydataobj.showid + "foritemid" +
                         props.epobj.id;
                     //console.warn("*mylnkky = " + mylnkky);
-                    itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);
+                    const mynonedititem = mydataobj[mky];
+                    const myeditmodeitem = (<input type="text" name={mky}
+                        value={mydataobj[mky]} onChange={null} />);
+                    const mydispitem = (dispeditmode ? myeditmodeitem: mynonedititem);
+                    itemval = (<Link key={mylnkky} to={mlval}>{mydispitem}</Link>);
                 }
                 else if (mstr === "Quantity")
                 {
                     console.log("props.epobj = ", props.epobj);
                     console.log("props.epobj[" + mky + "] = ", props.epobj[mky]);
-                    itemval = props.epobj[mky];
+                    const mynonedititem = props.epobj[mky];
+                    const myeditmodeitem = (<input type="number" name="quantity"
+                        style={{maxWidth: "100px"}} value={props.epobj[mky]} onChange={null} />);
+                    itemval = (dispeditmode ? myeditmodeitem: mynonedititem);
                 }
                 else
                 {
+                    //seasonnumber, episodenumber, etc.
                     console.log("mydataobj = ", mydataobj);
                     console.log("mydataobj[" + mky + "] = ", mydataobj[mky]);
-                    itemval = mydataobj[mky];
+                    const mynonedititem = mydataobj[mky];
+                    const myeditmodeitem = (<input type="text" name={mky}
+                        style={{maxWidth: "100px"}}
+                        value={mydataobj[mky]} onChange={null} />);
+                    itemval = (dispeditmode ? myeditmodeitem: mynonedititem);
                 }
             }
             console.log("itemval = ", itemval);
@@ -1394,8 +1422,8 @@ function EpisodeToyShowOrList(props){
                         let oldquantity = itemsused[usedindx].quantity;
                         itemsused[usedindx].quantity = oldquantity + mitem.quantity;
                         console.log("oldquantity = " + oldquantity);
-                        console.log("NEW quantity = itemsused[" + usedindx + "].quantity = " +
-                            itemsused[usedindx].quantity);
+                        console.log("NEW quantity = itemsused[" + usedindx +
+                            "].quantity = " + itemsused[usedindx].quantity);
                         
                         //if the current user owns the toy, for both,
                         //then price and profit: 0
@@ -1439,7 +1467,106 @@ function EpisodeToyShowOrList(props){
         console.log("tprofit = " + tprofit);
 
         return [myprofittds, tprofit];
-    }
+    }//END OF PROFIT TDS FUNCTION
+
+    function switchMode(event)
+    {
+        console.log("INSIDE OF SWITCH EDIT MODE()");
+        console.log("err = " + err);
+        console.log("props.editmode = " + props.editmode);
+        console.log("props.usemy = " + props.usemy);
+        console.log("props.simpusrobj = ", props.simpusrobj);
+
+        let setissafe = true;
+        if (props.editmode) setissafe = true;
+        else
+        {
+            if (err) setissafe = false;
+            else
+            {
+                if (props.simpusrobj.instatus)
+                {
+                    if (props.usemy || props.simpusrobj.access_level != 2) setissafe = false;
+                    else
+                    {
+                        //the user is logged in
+                        //the user needs to be a show owner to have edit mode on
+                        //only the show owner is allowed to edit/add/or delete items
+                        //for that show
+                        console.log("NEED TO CHECK TO SEE IF THE USER IS A SHOW OWNER!");
+                        console.log("shows = ", shows);
+                        console.log("toys = ", toys);
+                        console.log("episodes = ", episodes);
+                        console.log("usertoys = ", usertoys);
+                        console.log("props.epobj = ", props.epobj);
+                        console.log("props.typenm = ", props.typenm);
+                        console.log("props.simpusrobj.id = " + props.simpusrobj.id);
+
+                        let userisswowner = false;
+                        if (props.typenm === "Show")
+                        {
+                            if (cc.isStringEmptyNullOrUndefined(shows))
+                            {
+                                if (cc.isItemNullOrUndefined(props.epobj));
+                                else
+                                {
+                                    userisswowner =
+                                        (props.simpusrobj.id === props.epobj.owner_id);
+                                }
+                            }
+                            else
+                            {
+                                for (let n = 0; n < shows.length; n++)
+                                {
+                                    if (props.simpusrobj.id === shows[n].owner_id)
+                                    {
+                                        userisswowner = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else if (props.typenm === "Toy" || props.typenm === "Episode")
+                        {
+                            let mlist = null;
+                            if (props.typenm === "Toy") mlist = toys;
+                            else mlist = episodes;
+
+                            if (cc.isStringEmptyNullOrUndefined(mlist))
+                            {
+                                if (cc.isItemNullOrUndefined(props.epobj));
+                                else
+                                {
+                                    userisswowner = (props.simpusrobj.id ===
+                                        props.epobj.show.owner_id);
+                                }
+                            }
+                            else
+                            {
+                                for (let n = 0; n < mlist.length; n++)
+                                {
+                                    if (props.simpusrobj.id === mlist[n].show.owner_id)
+                                    {
+                                        userisswowner = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else throw new Error(invalidTypeErrMsg);
+                        console.log("userisswowner = " + userisswowner);
+
+                        setissafe = userisswowner;
+                    }
+                }
+                else setissafe = false;
+            }
+        }
+        console.log("setissafe = " + setissafe);
+
+        if (setissafe) props.seteditmode(!props.editmode);
+    }//END OF SWITCH EDIT MODE FUNCTION
+
 
     console.log("");
     console.log("NEW loaded = " + loaded);
@@ -1548,11 +1675,11 @@ function EpisodeToyShowOrList(props){
 
                 return (<EpisodeToyShowOrList key={kynm} typenm={props.typenm}
                     uselist={false} useinlist={true} epobj={ep} usemy={props.usemy}
-                    location={props.location} 
+                    location={props.location} simpusrobj={props.simpusrobj}
+                    editmode={props.editmode} seteditmode={props.seteditmode}
                     watchall={props.watchall} setWatchAll={props.setWatchAll}
                     watcheditems={props.watcheditems}
-                    setWatchedItems={props.setWatchedItems}
-                    simpusrobj={props.simpusrobj} />);
+                    setWatchedItems={props.setWatchedItems} />);
             });
         }
         console.log("myeps = ", myeps);
@@ -1563,16 +1690,11 @@ function EpisodeToyShowOrList(props){
         }
         //else;//do nothing
         
-        //let mdataobj = getDataObjectFromType();
         console.log("SHOWNAME = " + showname);
         console.log("props.simpusrobj.instatus = " + props.simpusrobj.instatus);
         console.log("props.usemy = " + props.usemy);
         console.log("props.typenm = " + props.typenm);
 
-        //const addbgremcol = (props.simpusrobj.instatus);
-        // && (props.usemy || props.typenm === "Toy")
-        //console.log("addbgremcol = " + addbgremcol);
-        
         let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
         let myotds = genHeaderRowForList(props.simpusrobj.instatus);
         let myhitemstr = "";
@@ -1624,18 +1746,8 @@ function EpisodeToyShowOrList(props){
         console.log("props.simpusrobj.instatus = " + props.simpusrobj.instatus);
         console.log("props.usemy = " + props.usemy);
         console.log("props.typenm = " + props.typenm);
-        //console.log("addbgremcol = " + addbgremcol);
         
         
-        //let mytds = [];
-        //if (props.simpusrobj.instatus && (props.usemy || props.typenm === "Toy"))
-        //{
-        //    mytds = [<td key={"buyremtoysbtn"} className="border">Buy/Remove Toys</td>];
-        //    myotds.forEach((mitem) => mytds.push(mitem));
-        //}
-        //else mytds = myotds;
-        //const myhdrow = (<tr className="border">{mytds}</tr>);
-        //console.log("mytds = ", mytds);
         console.log("cusrisshowowner = " + cusrisshowowner);
         console.log("err = " + err);
         console.log("");
@@ -1661,8 +1773,14 @@ function EpisodeToyShowOrList(props){
         //toys for show: show name
         //episodes for show: show name
         //shows
+        const dispchangemode = (props.simpusrobj.instatus &&
+            props.simpusrobj.access_level === 2 && !props.usemy && !err);
+        const dispeditmode = (props.editmode && dispchangemode);
         return (<div style={{backgroundColor: mybgcolor}}>
-            <h1>{myhitemstr}{props.usemy ? null: mysnmitemval}</h1>
+            <h1>{myhitemstr}{props.usemy ? null: mysnmitemval}
+            {!dispchangemode ? null: <>{": Change to "}<button onClick={switchMode}>
+                {dispeditmode ? "View": "Edit"} Mode</button></>}
+            </h1>
             {(props.usemy && props.typenm === "Toy" && cusrisshowowner) ?
             <div><h2>Total Profit: ${tprofit}</h2>
             <table key="toyprofittable" className="border">

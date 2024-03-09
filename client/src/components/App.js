@@ -11,12 +11,16 @@ import CommonClass from "./commonclass";
 function App() {
   let history = useHistory();
   let [user, setUser] = useState(null);
+  let [iseditmode, setEditMode] = useState(false);
   let [checkitems, setCheckItems] = useState([]);
   let [watchall, setWatchAll] = useState(true);
+
   const cc = new CommonClass();
   const epshowtoytypenmerrmsg = cc.getTypeErrorMsgFromList(["Episode", "Toy", "Show"]);
   const loginprefsetctypenmerrmsg = cc.getTypeErrorMsgFromList(
     ["SignUp", "Login", "Logout", "Preferences"]);
+  
+  if ((user === undefined || user === null) && iseditmode) setEditMode(false);
 
   function getSimplifiedUserObj()
   {
@@ -63,7 +67,8 @@ function App() {
     return (<>{(incnvbar) ? <Navbar simpusrobj={simpusrobj} /> : null}
       <EpisodeToyShowOrList key={mky} typenm={mtype} uselist={uselist} useinlist={useinlist}
         epobj={null} location={myloc} usemy={usemy} simpusrobj={simpusrobj} watchall={watchall}
-        checkitems={checkitems} setCheckItems={setCheckItems} setWatchAll={setWatchAll} />
+        checkitems={checkitems} setCheckItems={setCheckItems} setWatchAll={setWatchAll}
+        editmode={iseditmode} seteditmode={setEditMode} />
     </>);
   }
 
