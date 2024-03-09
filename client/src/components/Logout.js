@@ -22,7 +22,7 @@ function Logout({setuser=null})
     if (errmsg === undefined || errmsg === null || errmsg.length < 1) bgcolor = "lime";
     else bgcolor = "red";
 
-    return (<div style={{bacgroundColor: bgcolor}}><h1>Logout</h1><p>{errmsg}</p></div>);
+    return (<div style={{backgroundColor: bgcolor}}><h1>Logout</h1><p>{errmsg}</p></div>);
 }
 
 export default Logout;

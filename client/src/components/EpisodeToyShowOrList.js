@@ -19,7 +19,8 @@ function EpisodeToyShowOrList(props){
 
     cc.letMustBeDefinedAndNotNull(props.typenm, "props.typenm");
 
-    const invalidTypeErrMsg = "typenm must be Episode, Toy, or Show, but it was not!";
+    const invalidTypeErrMsg = cc.getTypeErrorMsgFromList(["Episode", "Toy", "Show"]);
+    const invtypeeportoyonlyerrmsg = cc.getTypeErrorMsgFromList(["Episode", "Toy"]);
     if (props.typenm === "Episode" || props.typenm === "Toy" || props.typenm === "Show");
     else throw new Error(invalidTypeErrMsg);
 
@@ -116,7 +117,7 @@ function EpisodeToyShowOrList(props){
                 };
                 setMyToyDataObj(mynwtoyobj);
             }
-            else throw new Error("typenm must be Episode or Toy, but it was not!");
+            else throw new Error(invtypeeportoyonlyerrmsg);
             console.log("SETTING NEW VALUE FOR SHOWNAME TO: " + oldsnm);
             setShowName(oldsnm);
         }
@@ -203,7 +204,7 @@ function EpisodeToyShowOrList(props){
                 {
                     if (props.typenm === "Episode") murl = "/my-episodes";
                     else if (props.typenm === "Toy") murl = "/my-toys";
-                    else throw new Error("no page found for My-Type (" + props.typenm + ")!");
+                    else throw new Error(invtypeeportoyonlyerrmsg);
                 }
                 else murl = "" + baseurl;
             }
@@ -457,11 +458,7 @@ function EpisodeToyShowOrList(props){
                                 else setEpisodes(data);
                             }
                             else if (props.typenm === "Toy") setToys(data);
-                            else
-                            {
-                                throw new Error("typenm must be Episode or Toy, " +
-                                    "but it was not!");
-                            }
+                            else throw new Error(invtypeeportoyonlyerrmsg);
                         }
                         else if (props.typenm === "Show")
                         {
@@ -503,7 +500,7 @@ function EpisodeToyShowOrList(props){
                                 {
                                     genAndSetNewDataStateObject(data.toy, null);
                                 }
-                                else throw new Error("invalid typenm found and used here!");
+                                else throw new Error(invtypeeportoyonlyerrmsg);
                             }
                             else
                             {
@@ -574,7 +571,7 @@ function EpisodeToyShowOrList(props){
                     {
                         genAndSetNewDataStateObject(props.epobj.toy, null);
                     }
-                    else throw new Error("invalid typenm found and used here!");
+                    else throw new Error(invtypeeportoyonlyerrmsg);
                 }
                 else genAndSetNewDataStateObject(props.epobj, null);
             }
@@ -811,7 +808,7 @@ function EpisodeToyShowOrList(props){
             myurl = "" + props.location.pathname + "/" +
                 props.epobj[props.typenm.toLowerCase()].id;
         }
-        else throw new Error("typenm must be Episode, or Toy, but it was not!");
+        else throw new Error(invtypeeportoyonlyerrmsg);
         console.log("myurl = " + myurl);
         fetch(myurl, myconfigobj)
         .then((res) => res.json()).then((data) => {
@@ -1059,7 +1056,7 @@ function EpisodeToyShowOrList(props){
                     {
                         if (props.typenm === "Episode") epobky = "episode";
                         else if (props.typenm === "Toy") epobky = "toy";
-                        else throw new Error("typenm must be Episode or Toy, but it was not!");
+                        else throw new Error(invtypeeportoyonlyerrmsg);
                         console.log("NEW epobky = " + epobky);
                         
                         let olnkvalky = "" + epobky + "_number";
@@ -1528,7 +1525,7 @@ function EpisodeToyShowOrList(props){
                 {
                     if (props.typenm === "Toy") myepid = ep.toy.id;
                     else if (props.typenm === "Episode") myepid = ep.episode.id;
-                    else throw new Error("typenm must be Episode or Toy, but it was not!");
+                    else throw new Error(invtypeeportoyonlyerrmsg);
                 }
                 else myepid = ep.id;
                 //console.warn("IN MYEPS NO ERR!");
@@ -1609,7 +1606,7 @@ function EpisodeToyShowOrList(props){
             else myhitemstr = "" + props.typenm + "s For Show: ";
         }
         else if (props.typenm === "Show") myhitemstr = "" + props.typenm + "s";
-        else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+        else throw new Error(invalidTypeErrMsg);
         console.log("FINAL myhitemstr = " + myhitemstr);
 
         let mysnmitemval = null;

@@ -13,6 +13,10 @@ function App() {
   let [user, setUser] = useState(null);
   let [checkitems, setCheckItems] = useState([]);
   let [watchall, setWatchAll] = useState(true);
+  const cc = new CommonClass();
+  const epshowtoytypenmerrmsg = cc.getTypeErrorMsgFromList(["Episode", "Toy", "Show"]);
+  const loginprefsetctypenmerrmsg = cc.getTypeErrorMsgFromList(
+    ["SignUp", "Login", "Logout", "Preferences"]);
 
   function getSimplifiedUserObj()
   {
@@ -34,22 +38,9 @@ function App() {
     return {"id": usrid, "username": musrnm, "access_level": alv, "instatus": lgi,
       "password": pswd};
   }
-  function getUserName()
-  {
-    return getSimplifiedUserObj()["username"];
-  }
-  function getLoggedInStatus()
-  {
-    return getSimplifiedUserObj()["instatus"];
-  }
-  function getAccessLevel()
-  {
-    return getSimplifiedUserObj()["access_level"];
-  }
 
   function genEpsShowsToysComponent(props, mky, mtype, uselist, useinlist, incnvbar, usemy=false)
   {
-    const cc = new CommonClass();
     cc.letMustBeDefinedAndNotNull(props, "props");
     cc.letMustBeDefinedAndNotNull(mky, "mky");
     cc.letMustBeDefinedAndNotNull(mtype, "mtype");
@@ -58,24 +49,60 @@ function App() {
     cc.letMustBeBoolean(incnvbar, "incnvbar");
     cc.letMustBeBoolean(usemy, "usemy");
 
+    if (mtype === "Episode" || mtype === "Show" || mtype === "Toy");
+    else throw new Error(epshowtoytypenmerrmsg);
+
     let simpusrobj = getSimplifiedUserObj();
     console.log("usemy = " + usemy);
 
-    if (usemy)
-    {
-      if (simpusrobj["instatus"]);
-      else return (<Redirect exact to="/login" />);
-    }
+    if (usemy && !simpusrobj.instatus) return (<Redirect to="/login" />);
 
     let myloc = props.location;
     console.log("myloc = ", myloc);
 
-    return (<>
-      {(incnvbar) ? <Navbar simpusrobj={simpusrobj} /> : null}
+    return (<>{(incnvbar) ? <Navbar simpusrobj={simpusrobj} /> : null}
       <EpisodeToyShowOrList key={mky} typenm={mtype} uselist={uselist} useinlist={useinlist}
         epobj={null} location={myloc} usemy={usemy} simpusrobj={simpusrobj} watchall={watchall}
         checkitems={checkitems} setCheckItems={setCheckItems} setWatchAll={setWatchAll} />
     </>);
+  }
+
+  function makeNewItem(typenm)
+  {
+    cc.letMustBeDefinedAndNotNull(typenm, "typenm");
+    if (typenm === "Episode" || typenm === "Show" || typenm === "Toy");
+    else throw new Error(epshowtoytypenmerrmsg);
+
+    const mysimpusrobj = getSimplifiedUserObj();
+    if (mysimpusrobj.access_level === 2)
+    {
+      return (<><Navbar simpusrobj={mysimpusrobj} />
+        <NewShowToyEpisode typenm={typenm} simpusrobj={mysimpusrobj} /></>);
+    }
+    else return (<Redirect to="/login" />);
+  }
+
+  function makeLoginPrefsItem(redonin, useloginredulr, typenm)
+  {
+    cc.letMustBeBoolean(redonin, "redonin");
+    cc.letMustBeBoolean(useloginredulr, "useloginredulr");
+
+    if (typenm === "SignUp" || typenm === "Login" || typenm === "Logout" ||
+      typenm === "Preferences")
+    {
+      //do nothing
+    }
+    else throw new Error(loginprefsetctypenmerrmsg);
+
+    const mysimpusrobj = getSimplifiedUserObj();
+    const nvbar = (<Navbar simpusrobj={mysimpusrobj} />);
+    const reditem = (<Redirect to={(useloginredulr ? "/login": "/")} />);
+    const sprefsitem = (<SignUpLoginPreferences typenm={typenm} setuser={setUser}
+        simpusrobj={mysimpusrobj} />);
+    const lgoutitem = (<Logout setuser={setUser} />);
+    
+    if (redonin === mysimpusrobj.instatus) return reditem;
+    else return (<>{nvbar}{(typenm === "Logout") ? lgoutitem: sprefsitem}</>);
   }
 
   
@@ -85,26 +112,10 @@ function App() {
         <Navbar simpusrobj={getSimplifiedUserObj()} />
         <Home simpusrobj={getSimplifiedUserObj()} />
       </Route>
-      <Route exact path="/shows/new">
-        {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
-        <NewShowToyEpisode typenm="Show" simpusrobj={getSimplifiedUserObj()} /></> :
-        <Redirect to="/login" />}
-      </Route>
-      <Route exact path="/toys/new">
-        {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
-        <NewShowToyEpisode typenm="Toy" simpusrobj={getSimplifiedUserObj()} /></> :
-        <Redirect to="/login" />}
-      </Route>
-      <Route path="/shows/:showid/toys/new">
-        {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
-        <NewShowToyEpisode typenm="Toy" simpusrobj={getSimplifiedUserObj()} /></> :
-        <Redirect to="/login" />}
-      </Route>
-      <Route path="/shows/:showid/episodes/new">
-        {(getAccessLevel() === 2) ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
-        <NewShowToyEpisode typenm="Episode" simpusrobj={getSimplifiedUserObj()} /></> :
-        <Redirect to="/login" />}
-      </Route>
+      <Route exact path="/shows/new" render={(props) => makeNewItem("Show")} />
+      <Route exact path="/toys/new" render={(props) => makeNewItem("Toy")} />
+      <Route path="/shows/:showid/toys/new" render={(props) => makeNewItem("Toy")} />
+      <Route path="/shows/:showid/episodes/new" render={(props) => makeNewItem("Episode")} />
       <Route exact path="/shows" render={(props) =>
         genEpsShowsToysComponent(props, "swfromapp", "Show", true, false, true, false)} />
       <Route path="/shows/:showid/toys/:id" render={(props) =>
@@ -125,28 +136,13 @@ function App() {
         genEpsShowsToysComponent(props, "epfromapp", "Episode", true, false, true, true)} />
       <Route exact path="/my-toys" render={(props) =>
         genEpsShowsToysComponent(props, "tyfromapp", "Toy", true, false, true, true)} />
-      <Route exact path="/preferences">
-        {getLoggedInStatus() ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
-          <SignUpLoginPreferences typenm="Preferences" setuser={setUser}
-            simpusrobj={getSimplifiedUserObj()} />
-        </> : <Redirect to="/login" />}
-      </Route>
-      <Route exact path="/login">
-        {getLoggedInStatus() ? <Redirect to="/" /> : <>
-          <Navbar simpusrobj={getSimplifiedUserObj()} />
-          <SignUpLoginPreferences typenm="Login" setuser={setUser}
-            simpusrobj={getSimplifiedUserObj()} /></>}
-      </Route>
-      <Route exact path="/logout">
-        {getLoggedInStatus() ? <><Navbar simpusrobj={getSimplifiedUserObj()} />
-        <Logout setuser={setUser} /></> : <Redirect to="/" />}
-      </Route>
-      <Route exact path="/signup">
-        {getLoggedInStatus() ? <Redirect to="/" /> : <>
-            <Navbar simpusrobj={getSimplifiedUserObj()} />
-            <SignUpLoginPreferences typenm="SignUp" setuser={setUser}
-              simpusrobj={getSimplifiedUserObj()} /></>}
-      </Route>
+      <Route exact path="/preferences" render={(props) => 
+        makeLoginPrefsItem(false, true, "Preferences")} />
+      <Route exact path="/login" render={(props) => makeLoginPrefsItem(true, false, "Login")} />
+      <Route exact path="/logout" render={(props) =>
+        makeLoginPrefsItem(false, false, "Logout")} />
+      <Route exact path="/signup" render={(props) =>
+        makeLoginPrefsItem(true, false, "SignUp")} />
       <Route exact path="/redirectme" render={(props) => {
         console.log("history = ", history);
         return history.goBack();

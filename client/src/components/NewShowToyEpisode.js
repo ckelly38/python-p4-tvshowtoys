@@ -32,9 +32,8 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
     console.log("AFTER INITIAL CALL TO SET INITIAL VALUES OBJ!");
 
     const iserr = (simpusrobj.access_level !== 2);
-
-    const typenmerrmsg = "typenm is invalid! It must be Episode, Toy, or Show, " +
-        "but it was not!";
+    const tyepnmerrmsgeportoy = cc.getTypeErrorMsgFromList(["Episode", "Toy"]);
+    const typenmerrmsg = cc.getTypeErrorMsgFromList(["Episode", "Toy", "Show"]);
     if (typenm === "Episode" || typenm === "Show" || typenm === "Toy");
     else throw new Error(typenmerrmsg);
 
@@ -116,11 +115,7 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                 let murl = "";
                 if (typenm === "Episode") murl = "/shows/" + mysid + "/episodes";
                 else if (typenm === "Toy") murl = "/shows/" + mysid + "/toys";
-                else
-                {
-                    throw new Error("typenm is invalid! It must be Episode or Toy, " +
-                        "but it was not!");
-                }
+                else throw new Error(tyepnmerrmsgeportoy);
                 console.log("murl = " + murl);
 
                 fetch(murl).then((res) => res.json())
@@ -503,16 +498,10 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                 if (doinfofetch) return (<p>Waiting for response...!</p>);
                 else
                 {
-                    if (iserr)
-                    {
-                        setErrMsg("You are not allowed to create new Episodes, " +
-                            "Toys, or Shows!");
-                    }
-                    else
-                    {
-                        setErrMsg("You are not allowed to create new Episodes, " +
-                                    "or Toys for Shows you do not own!");
-                    }
+                    let myreterrmsg = "You are not allowed to create new Episodes, ";
+                    if (iserr) myreterrmsg += "Toys, or Shows!";
+                    else myreterrmsg += "or Toys for Shows you do not own!";
+                    setErrMsg(myreterrmsg);
                 }
             }
         },

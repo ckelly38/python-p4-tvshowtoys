@@ -230,6 +230,37 @@ class CommonClass{
             return numc;
         }
     }
+    getTypeErrorMsgFromList(vtypes)
+    {
+        //add a comma and a space after each item
+        //include or just before the last item
+
+        if (this.isStringEmptyNullOrUndefined(vtypes))
+        {
+            return "there are no valid types!";
+        }
+        //else;//do nothing
+
+        let retstr = "";
+        vtypes.forEach((item, index) => {
+            if (this.isStringEmptyNullOrUndefined(item))
+            {
+                throw new Error("the type name must not be empty, null, or undefined!");
+            }
+            else
+            {
+                if (vtypes.length === 1 || index === 0) retstr += "" + item;
+                else
+                {
+                    if (index + 1 < vtypes.length) retstr += ", " + item;
+                    else if (index + 1 === vtypes.length) retstr += ", or " + item;
+                    else throw new Error("illegal index found and used here!");
+                }
+            }
+        });
+        console.log("typenm must be " + retstr + ", but it was not!");
+        return "typenm must be " + retstr + ", but it was not!";
+    }
 
     getBGColorToBeUsed(err, typenm)
     {
@@ -247,8 +278,10 @@ class CommonClass{
             else if (typenm === "Preferences") mybgcolor = "pink";
             else
             {
-                throw new Error("typenm must be Episode, Toy, Show, or SignUp, Login, " +
-                    "or Preferences but it was not!");
+                throw new Error(this.getTypeErrorMsgFromList(["Episode", "Toy", "Show",
+                    "SignUp", "Login", "Preferences"]));
+                //throw new Error("typenm must be Episode, Toy, Show, or SignUp, Login, " +
+                //    "or Preferences but it was not!");
             }
         }
         return mybgcolor;
@@ -318,7 +351,8 @@ class CommonClass{
             hlist = ["Name", "# Of Seasons", "# Of Episodes", "~ Total Episodes/Season",
                 "Episodes Link", "Toys Link", "Description"];
         }
-        else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
+        else throw new Error(this.getTypeErrorMsgFromList(["Episode", "Toy", "Show"]));
+        //else throw new Error("typenm must be Episode, Toy, or Show, but it was not!");
         return hlist;
     }
     isHeaderCentered(hstr)
