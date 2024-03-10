@@ -15,8 +15,7 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
     let [swpswrd, setShowPassword] = useState(false);
     let history = useHistory();
 
-    const typenmerrmsg = "typenm is invalid! It must be Preferences, SignUp, or Login, " +
-        "but it was not!";
+    const typenmerrmsg = cc.getTypeErrorMsgFromList(["Preferences", "SignUp", "Login"]);
     if (typenm === "Preferences" || typenm === "SignUp" || typenm === "Login");
     else throw new Error(typenmerrmsg);
 
@@ -49,11 +48,7 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
             myinitpswrd = "" + simpusrobj.password;
             myinitacslv = simpusrobj.access_level;
         }
-        else
-        {
-            throw new Error("typenm is invalid! It must be Preferences, SignUp, or Login, " +
-                "but it was not!");
-        }
+        else throw new Error(typenmerrmsg);
 
         if (typenm === "Login") return {"username": myinitusrnm, "password": myinitpswrd};
         else if (typenm === "SignUp" || typenm === "Preferences")

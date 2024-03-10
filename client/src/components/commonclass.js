@@ -258,7 +258,7 @@ class CommonClass{
                 }
             }
         });
-        console.log("typenm must be " + retstr + ", but it was not!");
+        //console.log("typenm must be " + retstr + ", but it was not!");
         return "typenm must be " + retstr + ", but it was not!";
     }
 

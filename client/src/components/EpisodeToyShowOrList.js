@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Switch, Route, Link, useParams, useHistory, Redirect } from "react-router-dom";
 import SellToForm from "./SellToForm";
+import { useFormik } from "formik";
+import * as yup from "yup";
 import CommonClass from "./commonclass";
 
 function EpisodeToyShowOrList(props){
@@ -646,7 +648,6 @@ function EpisodeToyShowOrList(props){
         setMyShowDataObj(myinitdatashowobj);
         setMyToyDataObj(myinitdatatoyobj);
         setMyEpDataObj(myinitdataepobj);
-        props.seteditmode(false);
         console.log("RESETTING SHOWNAME HERE!");
         setShowName("Show Name");
         mres = null;
@@ -943,11 +944,11 @@ function EpisodeToyShowOrList(props){
                         buyerisseller={byrcanbslr} delitemfunc={delItem}
                         resetstate={resetState} /> : null}</td>);
         }
-        const dispeditmode = (props.simpusrobj.instatus && props.editmode && !props.usemy);
-        console.log("props.editmode = " + props.editmode);
-        console.log("props.usemy = " + props.usemy);
-        console.log("dispeditmode = " + dispeditmode);
-        console.log("");
+        //const dispeditmode = (props.simpusrobj.instatus && props.editmode && !props.usemy);
+        //console.log("props.editmode = " + props.editmode);
+        //console.log("props.usemy = " + props.usemy);
+        //console.log("dispeditmode = " + dispeditmode);
+        //console.log("");
 
         let myotds = myhlist.map((mstr) => {
             console.log("mstr = " + mstr);
@@ -964,12 +965,8 @@ function EpisodeToyShowOrList(props){
                 else
                 {
                     //console.warn("*mydescky = normal" + basekynm);
-                    const mynonedititem = mydataobj.description;
-                    const myedititem = (<textarea name="description"
-                        style={{minWidth: "500px", minHeight: "120px"}}    
-                        value={mydataobj.description} onChange={null} />);
                     return (<td key={"normal" + basekynm} className="border">
-                        {dispeditmode ? myedititem: mynonedititem}</td>);
+                        {mydataobj.description}</td>);
                 }
             }
 
@@ -1086,11 +1083,7 @@ function EpisodeToyShowOrList(props){
                             props.epobj.id;
                     }
                     //console.warn("*mylnkky = " + mylnkky);
-                    const mynonedititem = mydataobj[mky];
-                    const myeditmodeitem = (<input type="text" name={mky}
-                        value={mydataobj[mky]} onChange={null} />);
-                    const mydispitem = (dispeditmode ? myeditmodeitem: mynonedititem);
-                    itemval = (<Link key={mylnkky} to={mlval}>{mydispitem}</Link>);
+                    itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);
                 }
                 else if (mstr === "Show Name")
                 {
@@ -1098,31 +1091,20 @@ function EpisodeToyShowOrList(props){
                     let mylnkky = "shownamelink" + mydataobj.showid + "foritemid" +
                         props.epobj.id;
                     //console.warn("*mylnkky = " + mylnkky);
-                    const mynonedititem = mydataobj[mky];
-                    const myeditmodeitem = (<input type="text" name={mky}
-                        value={mydataobj[mky]} onChange={null} />);
-                    const mydispitem = (dispeditmode ? myeditmodeitem: mynonedititem);
-                    itemval = (<Link key={mylnkky} to={mlval}>{mydispitem}</Link>);
+                    itemval = (<Link key={mylnkky} to={mlval}>{mydataobj[mky]}</Link>);
                 }
                 else if (mstr === "Quantity")
                 {
                     console.log("props.epobj = ", props.epobj);
                     console.log("props.epobj[" + mky + "] = ", props.epobj[mky]);
-                    const mynonedititem = props.epobj[mky];
-                    const myeditmodeitem = (<input type="number" name="quantity"
-                        style={{maxWidth: "100px"}} value={props.epobj[mky]} onChange={null} />);
-                    itemval = (dispeditmode ? myeditmodeitem: mynonedititem);
+                    itemval = props.epobj[mky];
                 }
                 else
                 {
                     //seasonnumber, episodenumber, etc.
                     console.log("mydataobj = ", mydataobj);
                     console.log("mydataobj[" + mky + "] = ", mydataobj[mky]);
-                    const mynonedititem = mydataobj[mky];
-                    const myeditmodeitem = (<input type="text" name={mky}
-                        style={{maxWidth: "100px"}}
-                        value={mydataobj[mky]} onChange={null} />);
-                    itemval = (dispeditmode ? myeditmodeitem: mynonedititem);
+                    itemval = mydataobj[mky];
                 }
             }
             console.log("itemval = ", itemval);
@@ -1164,6 +1146,12 @@ function EpisodeToyShowOrList(props){
         const epspersnnameslist = cc.getAcceptedNamesForNumEpisodesPerSeason();
         console.log("epspersnnameslist = ", epspersnnameslist);
 
+        const dispchangemode = (props.simpusrobj.instatus &&
+            props.simpusrobj.access_level === 2 && !props.usemy && !err);
+        const dispeditmode = (props.editmode && dispchangemode);
+        console.log("dispchangemode = " + dispchangemode);
+        console.log("dispeditmode = " + dispeditmode);
+
         let mytds = myhlist.map((mstr) => {
             console.log("mstr = " + mstr);
 
@@ -1192,9 +1180,17 @@ function EpisodeToyShowOrList(props){
                 {
                     //console.warn("*mydescky = normal" + basekynm);
                     //console.warn("*myhkynm = normalcontainer" + basekynm);
+                    const mynonedititem = mydataobj.description;
+                    const myedititem = (<input type="text"
+                        value={mydataobj.description} onChange={null} />);
+                    const mydispitem = (dispeditmode ? myedititem: mynonedititem);
+                    console.log("dispchangemode = " + dispchangemode);
+                    console.log("dispeditmode = " + dispeditmode);
+                    console.log("mydispitem = ", mydispitem);
+
                     return (<div key={"containerfornormalcontainer" + basekynm}>
                         <h4 key={"normalcontainer" + basekynm}>Description: </h4>
-                        <p key={"normal" + basekynm}>{mydataobj.description}</p></div>);
+                        <p key={"normal" + basekynm}>{mydispitem}</p></div>);
                 }
             }
             else if (mstr === "Show Name")
@@ -1212,7 +1208,9 @@ function EpisodeToyShowOrList(props){
                         {mydataobj.showname}</Link>);
                 }
                 return (<h1 key={"shownametitle" + mydataobj.showname}>
-                    {mynmstr}{myitemval}</h1>);
+                    {mynmstr}{myitemval}
+                    {dispchangemode ? (<>: Change Mode To <button onClick={switchMode}>
+                    {dispeditmode ? "View": "Edit"} Mode</button></>): null}</h1>);
             }
             else if (mstr === "Name")
             {
@@ -1486,7 +1484,7 @@ function EpisodeToyShowOrList(props){
             {
                 if (props.simpusrobj.instatus)
                 {
-                    if (props.usemy || props.simpusrobj.access_level != 2) setissafe = false;
+                    if (props.usemy || props.simpusrobj.access_level !== 2) setissafe = false;
                     else
                     {
                         //the user is logged in
@@ -1571,6 +1569,29 @@ function EpisodeToyShowOrList(props){
     console.log("");
     console.log("NEW loaded = " + loaded);
     console.log("resetCompState = " + resetCompState);
+
+    const formSchema = yup.object().shape({
+        username: yup.string().required("You must enter a username!").min(1),
+        password: yup.string().required("You must enter a password!").min(1),
+        access_level: yup.number().positive().integer().min(1).max(2)
+        .required("You must enter the access level!")
+        .typeError("You must enter a positive integer that is either 1 or 2 here!"),
+    });
+
+    //const myinitvals = getInitialValuesObjForType();
+    const formik = useFormik({
+        initialValues: {
+            username: "",
+            password: "",
+            access_level: 0
+        },
+        enableReinitialize: true,
+        validationSchema: formSchema,
+        onSubmit: (values) => {
+            console.log("values: ", values);
+        },
+    });
+
 
     let retldingcontr = false;
     if (loaded) retldingcontr = resetCompState;
@@ -1746,8 +1767,6 @@ function EpisodeToyShowOrList(props){
         console.log("props.simpusrobj.instatus = " + props.simpusrobj.instatus);
         console.log("props.usemy = " + props.usemy);
         console.log("props.typenm = " + props.typenm);
-        
-        
         console.log("cusrisshowowner = " + cusrisshowowner);
         console.log("err = " + err);
         console.log("");
@@ -1773,14 +1792,8 @@ function EpisodeToyShowOrList(props){
         //toys for show: show name
         //episodes for show: show name
         //shows
-        const dispchangemode = (props.simpusrobj.instatus &&
-            props.simpusrobj.access_level === 2 && !props.usemy && !err);
-        const dispeditmode = (props.editmode && dispchangemode);
         return (<div style={{backgroundColor: mybgcolor}}>
-            <h1>{myhitemstr}{props.usemy ? null: mysnmitemval}
-            {!dispchangemode ? null: <>{": Change to "}<button onClick={switchMode}>
-                {dispeditmode ? "View": "Edit"} Mode</button></>}
-            </h1>
+            <h1>{myhitemstr}{props.usemy ? null: mysnmitemval}</h1>
             {(props.usemy && props.typenm === "Toy" && cusrisshowowner) ?
             <div><h2>Total Profit: ${tprofit}</h2>
             <table key="toyprofittable" className="border">
