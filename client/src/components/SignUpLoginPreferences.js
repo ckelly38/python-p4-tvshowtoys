@@ -58,7 +58,98 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
         }
         else throw new Error(typenmerrmsg);
     }
+
+    function unsubscribeMe(event)
+    {
+        let myusrobj = {...simpusrobj};
+        myusrobj["user_id"] = simpusrobj.id;
+        let myconfigobj = {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            body: JSON.stringify(myusrobj)
+        };
+        fetch("/shows").then((res) => res.json()).then((data) => {
+            console.log(data);
+
+            if (data === undefined || data === null)
+            {
+                setErrMsg("got an empty response from the server! Failed to unsubscribe!");
+            }
+            else
+            {
+                let dkys = Object.keys(data);
+                console.log(dkys);
+                for (let n = 0; n < dkys.length; n++)
+                {
+                    if (dkys[n] === "error")
+                    {
+                        setErrMsg(data["error"]);
+                        return;
+                    }
+                }
+
+                let cusrisswownr = false;
+                for (let n = 0; n < data.length; n++)
+                {
+                    if (data[n].owner_id === simpusrobj.id)
+                    {
+                        cusrisswownr = true;
+                        break;
+                    }
+                }
+                console.log("cusrisswownr = " + cusrisswownr);
+
+                if (cusrisswownr)
+                {
+                    setErrMsg("Cannot unsubscribe because the user is a show owner!");
+                }
+                else
+                {
+                    fetch("/unsubscribe", myconfigobj).then((res) => res.json())
+                    .then((mdata) => {
+                        console.log(mdata);
+        
+                        if (mdata === undefined || mdata === null)
+                        {
+                            setErrMsg("got an empty response from the server! " +
+                                "Failed to unsubscribe!");
+                        }
+                        else
+                        {
+                            let dkys = Object.keys(mdata);
+                            console.log(dkys);
+                            for (let n = 0; n < dkys.length; n++)
+                            {
+                                if (dkys[n] === "error")
+                                {
+                                    setErrMsg(mdata["error"]);
+                                    return;
+                                }
+                            }
+        
+                            setSuccessMsg(mdata["message"]);
+                        }
+                    }).catch((merr) => {
+                        const myerrmsg = "There was a problem unsubscribing the user!";
+                        console.error(myerrmsg);
+                        console.error(merr);
+                        setErrMsg(myerrmsg + merr.message);
+                    });
+                }
+            }
+        }).catch((merr) => {
+            const myerrmsg = "There was a problem unsubscribing the user! Failed to get " +
+                "the show data!";
+            console.error(myerrmsg);
+            console.error(merr);
+            setErrMsg(myerrmsg + merr.message);
+        });
+    }
     
+
     const myinitvals = getInitialValuesObjForType();
     const formik = useFormik({
         initialValues: myinitvals,
@@ -76,7 +167,8 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
             let usesatleastoneval = true;
             if (typenm === "Preferences")
             {
-                //need the new values of what changed ONLY otherwise it will screw up the server
+                //need the new values of what changed ONLY
+                //otherwise it will screw up the server
                 //need some way to get the OLD values
                 usesatleastoneval = false;
                 console.log("myinitvals = ", myinitvals);//OLD VALUES
@@ -163,7 +255,8 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
                     }
                     else
                     {
-                        if (typenm === "Login" || typenm === "SignUp" || typenm === "Preferences")
+                        if (typenm === "Login" || typenm === "SignUp" ||
+                            typenm === "Preferences")
                         {
                             let mysucmsg = "";
                             if (typenm === "SignUp") mysucmsg = "Successfully signed up!";
@@ -235,11 +328,13 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
         <p> {formik.errors.password}</p>
         {useprefsorsignupschema ? <><label id="myacslvlbl" htmlFor="myacslv">
             Access Level: </label>
-        <input id="myacslv" type="number" step={1} name="access_level"
-            onChange={formik.handleChange} value={formik.values.access_level} placeholder={0} />
+        <input id="myacslv" type="number" step={1} name="access_level" placeholder={0}
+            onChange={formik.handleChange} value={formik.values.access_level} />
         <p> {formik.errors.access_level}</p></>: null}
         <button type="submit">{mybtnnm}</button>
-        <button type="button" onClick={(event) => history.push("/")}>Cancel</button>
+        <button type="button"  style={{marginLeft: "5px"}}
+            onClick={(event) => history.push("/")}>Cancel</button>
+        <button onClick={unsubscribeMe} style={{marginLeft: "50px"}}>Remove My Account</button>
     </form>
     <p>{(useerrcolor) ? errmsg : sucsmsg}</p>
     </div>);

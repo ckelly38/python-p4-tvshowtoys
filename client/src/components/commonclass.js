@@ -86,6 +86,7 @@ class CommonClass{
                 "showname": "Show Name",
                 "watched": false,
                 "showid": -1,
+                "showownerid": -1,
                 "id": -1
             };
         }
@@ -96,6 +97,7 @@ class CommonClass{
                 "showname": "Show Name",
                 "price": -1,
                 "showid": -1,
+                "showownerid": -1,
                 "id": -1
             };
         }
@@ -107,6 +109,7 @@ class CommonClass{
                 "numepisodesperseason": -1,
                 "totalepisodes": -1,
                 "showid": -1,
+                "owner_id": -1,
                 "id": -1
             };
         }

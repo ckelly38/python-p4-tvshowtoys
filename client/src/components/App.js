@@ -12,8 +12,6 @@ function App() {
   let history = useHistory();
   let [user, setUser] = useState(null);
   let [iseditmode, setEditMode] = useState(false);
-  let [checkitems, setCheckItems] = useState([]);
-  let [watchall, setWatchAll] = useState(true);
 
   const cc = new CommonClass();
   const epshowtoytypenmerrmsg = cc.getTypeErrorMsgFromList(["Episode", "Toy", "Show"]);
@@ -43,7 +41,8 @@ function App() {
       "password": pswd};
   }
 
-  function genEpsShowsToysComponent(props, mky, mtype, uselist, useinlist, incnvbar, usemy=false)
+  function genEpsShowsToysComponent(props, mky, mtype, uselist, useinlist, incnvbar,
+    usemy=false)
   {
     cc.letMustBeDefinedAndNotNull(props, "props");
     cc.letMustBeDefinedAndNotNull(mky, "mky");
@@ -56,7 +55,7 @@ function App() {
     if (mtype === "Episode" || mtype === "Show" || mtype === "Toy");
     else throw new Error(epshowtoytypenmerrmsg);
 
-    let simpusrobj = getSimplifiedUserObj();
+    const simpusrobj = getSimplifiedUserObj();
     console.log("usemy = " + usemy);
 
     if (usemy && !simpusrobj.instatus) return (<Redirect to="/login" />);
@@ -65,9 +64,8 @@ function App() {
     console.log("myloc = ", myloc);
 
     return (<>{(incnvbar) ? <Navbar simpusrobj={simpusrobj} /> : null}
-      <EpisodeToyShowOrList key={mky} typenm={mtype} uselist={uselist} useinlist={useinlist}
-        epobj={null} location={myloc} usemy={usemy} simpusrobj={simpusrobj} watchall={watchall}
-        checkitems={checkitems} setCheckItems={setCheckItems} setWatchAll={setWatchAll}
+      <EpisodeToyShowOrList key={mky} typenm={mtype} uselist={uselist} location={myloc}
+        useinlist={useinlist} epobj={null} usemy={usemy} simpusrobj={simpusrobj} 
         editmode={iseditmode} seteditmode={setEditMode} />
     </>);
   }
@@ -75,6 +73,7 @@ function App() {
   function makeNewItem(typenm)
   {
     cc.letMustBeDefinedAndNotNull(typenm, "typenm");
+    
     if (typenm === "Episode" || typenm === "Show" || typenm === "Toy");
     else throw new Error(epshowtoytypenmerrmsg);
 
@@ -91,7 +90,8 @@ function App() {
   {
     cc.letMustBeBoolean(redonin, "redonin");
     cc.letMustBeBoolean(useloginredulr, "useloginredulr");
-
+    cc.letMustBeDefinedAndNotNull(typenm, "typenm");
+    
     if (typenm === "SignUp" || typenm === "Login" || typenm === "Logout" ||
       typenm === "Preferences")
     {
@@ -143,7 +143,8 @@ function App() {
         genEpsShowsToysComponent(props, "tyfromapp", "Toy", true, false, true, true)} />
       <Route exact path="/preferences" render={(props) => 
         makeLoginPrefsItem(false, true, "Preferences")} />
-      <Route exact path="/login" render={(props) => makeLoginPrefsItem(true, false, "Login")} />
+      <Route exact path="/login" render={(props) =>
+        makeLoginPrefsItem(true, false, "Login")} />
       <Route exact path="/logout" render={(props) =>
         makeLoginPrefsItem(false, false, "Logout")} />
       <Route exact path="/signup" render={(props) =>

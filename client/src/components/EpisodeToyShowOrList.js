@@ -90,12 +90,14 @@ function EpisodeToyShowOrList(props){
     {
         let oldsnm = null;
         let oldsid = -1;
+        let oldsownrid = -1;
         if (props.typenm === "Episode" || props.typenm === "Toy")
         {
             console.log("props.usemy = " + props.usemy);
             console.log("olddataobj = ", olddataobj);
             oldsnm = olddataobj.show.name;
             oldsid = olddataobj.show.id;
+            oldsownrid = olddataobj.show.owner_id;
 
             if (props.typenm === "Episode")
             {
@@ -106,6 +108,7 @@ function EpisodeToyShowOrList(props){
                     "watched": olddataobj.watched,
                     "showname": oldsnm,
                     "showid": oldsid,
+                    "showownerid": oldsownrid,
                     "id": olddataobj.id
                 };
                 setMyEpDataObj(mynwepobj);
@@ -117,6 +120,7 @@ function EpisodeToyShowOrList(props){
                     "price": olddataobj.price,
                     "showname": oldsnm,
                     "showid": oldsid,
+                    "showownerid": oldsownrid,
                     "id": olddataobj.id
                 };
                 setMyToyDataObj(mynwtoyobj);
@@ -140,6 +144,7 @@ function EpisodeToyShowOrList(props){
                 "numepisodesperseason": msnobj.numepisodesperseason,
                 "totalepisodes": msnobj.totalepisodes,
                 "showid": olddataobj.id,
+                "owner_id": olddataobj.owner_id,
                 "id": olddataobj.id
             };
             setMyShowDataObj(mynwshowobj);
@@ -716,8 +721,6 @@ function EpisodeToyShowOrList(props){
         //"redbgclrtxtcntrborder" or "seasnumalign"
         const mynocntrclsnm = (usenormalbgcolor ? "border": "redbgclrborder");
         const mycntrclsnm = (usenormalbgcolor ? "seasnumalign": "redbgclrtxtcntrborder");
-        
-
         return (<tr key={kynm} className="border">
             {(props.simpusrobj.instatus) ? <td className={mynocntrclsnm}>
                 {"Cannot Remove It!"}</td>: null}
@@ -742,8 +745,7 @@ function EpisodeToyShowOrList(props){
                 <td className={mynocntrclsnm}>Watch Link</td>: null}
             {(props.usemy && props.typenm === "Toy") ?
             <td className={mycntrclsnm}>0</td> : null}
-            <td className={mynocntrclsnm} dangerouslySetInnerHTML={createMarkUp()}></td></tr>
-        );
+            <td className={mynocntrclsnm} dangerouslySetInnerHTML={createMarkUp()}></td></tr>);
     }//END OF GEN ERROR ITEM ON LIST()
 
     function genAndGetMyTDSForHeaderRowForList(addbgremcol=false)
@@ -1120,6 +1122,9 @@ function EpisodeToyShowOrList(props){
         let mytds = cc.addItemToBeginningOfList(myotds, usemytd,
             !cc.isItemNullOrUndefined(usemytd));
         console.log("mytds = ", mytds);
+        
+        //determine if there is an error...
+        let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
 
         let kynmidnm = "";
         if (params.showid === undefined || params.showid === null)
@@ -1131,6 +1136,76 @@ function EpisodeToyShowOrList(props){
         return (<tr key={kynmidnm} id={kynmidnm} className="border" 
             style={{backgroundColor: mybgcolor}}>{mytds}</tr>);
     }//END OF DISPLAY ITEM IN A LIST()
+
+    //TOYS: name, price, description
+    //SHOWS: name, description
+    //EPISODES: name, season #, episode #, description
+    const showFormSchema = yup.object().shape({
+        name: yup.string().required("You must enter a name!").min(1),
+        description: yup.string().required("You must enter a description!").min(1),
+    });
+    const episodeFormSchema = yup.object().shape({
+        name: yup.string().required("You must enter a name!").min(1),
+        description: yup.string().required("You must enter a description!").min(1),
+        season_number: yup.number().positive().integer().min(1)
+        .required("You must enter the season number!")
+        .typeError("You must enter a number that is at least 1 here!"),
+        episode_number: yup.number().positive().integer().min(1)
+        .required("You must enter the episode number!")
+        .typeError("You must enter a number that is at least 1 here!"),
+    });
+    const toyFormSchema = yup.object().shape({
+        name: yup.string().required("You must enter a name!").min(1),
+        description: yup.string().required("You must enter a description!").min(1),
+        price: yup.number().min(0)
+        .required("You must enter the price!")
+        .typeError("You must enter a number that is at least 0 here!"),
+    });
+    const formSchema = ((props.typenm === "Toy") ? toyFormSchema :
+        ((props.typenm === "Show") ? showFormSchema: episodeFormSchema));
+
+    const tempdataobj = getDataObjectFromType();
+    console.log("tempdataobj = ", tempdataobj);
+    
+    let tempinitvalsobj = null;
+    if (props.typenm === "Show")
+    {
+        tempinitvalsobj = {
+            name: "" + tempdataobj.name,
+            description: "" + tempdataobj.description
+        };
+    }
+    else if (props.typenm === "Toy")
+    {
+        tempinitvalsobj = {
+            name: "" + tempdataobj.name,
+            description: "" + tempdataobj.description,
+            price: tempdataobj.price
+        };
+    }
+    else if (props.typenm === "Episode")
+    {
+        tempinitvalsobj = {
+            name: "" + tempdataobj.name,
+            description: "" + tempdataobj.description,
+            season_number: tempdataobj.season_number,
+            episode_number: tempdataobj.episode_number
+        };
+    }
+    else throw new Error(invalidTypeErrMsg);
+    console.log("tempinitvalsobj = ", tempinitvalsobj);
+
+    //const myinitvals = getInitialValuesObjForType();
+    const formik = useFormik({
+        initialValues: tempinitvalsobj,
+        enableReinitialize: true,
+        validationSchema: formSchema,
+        onSubmit: (values) => {
+            console.log("values: ", values);
+            console.error("NOT DONE YET WITH THE UDPATE REQUEST FOR THE FORM!");
+        },
+    });
+
 
     function displayItemItself()
     {
@@ -1181,8 +1256,11 @@ function EpisodeToyShowOrList(props){
                     //console.warn("*mydescky = normal" + basekynm);
                     //console.warn("*myhkynm = normalcontainer" + basekynm);
                     const mynonedititem = mydataobj.description;
-                    const myedititem = (<input type="text"
-                        value={mydataobj.description} onChange={null} />);
+                    const myedititem = (<><textarea name="description"
+                        value={formik.values.description}
+                        style={{minWidth: "1000px", minHeight: "60px"}}
+                        onChange={formik.handleChange} />
+                        <p key={"errorsdescription"}>{formik.errors.description}</p></>);
                     const mydispitem = (dispeditmode ? myedititem: mynonedititem);
                     console.log("dispchangemode = " + dispchangemode);
                     console.log("dispeditmode = " + dispeditmode);
@@ -1215,22 +1293,39 @@ function EpisodeToyShowOrList(props){
             else if (mstr === "Name")
             {
                 let mynmstr = "" + props.typenm + " Name: " + mydataobj.name;
+                const mynonedititem = mynmstr;
+                const myedititem = (<div style={{display: "inline-block"}}>
+                    {"" + props.typenm + " Name: "}<input type="text" name="name"
+                    value={formik.values.name} onChange={formik.handleChange} />
+                    <p key={"errorsname"}>{formik.errors.name}</p></div>);
+                const mydispitem = (dispeditmode ? myedititem : mynonedititem);
                 if (props.typenm === "Show")
                 {
                     //console.warn("*myhkynm = shownametitle" + mydataobj.name);
-                    return (<h1 key={"shownametitle" + mydataobj.name}>{mynmstr}</h1>);
+                    return (<h1 key={"shownametitle" + mydataobj.name}>{mydispitem}
+                        {dispchangemode ? (<>: Change Mode To <button onClick={switchMode}>
+                        {dispeditmode ? "View": "Edit"} Mode</button></>): null}</h1>);
                 }
                 else
                 {
                     //console.warn("*myhkynm = eportoyname" + mynmstr);
-                    return (<h3 key={"eportoyname" + mynmstr}>{mynmstr}</h3>);
+                    return (<h3 key={"eportoyname" + mynmstr}>{mydispitem}</h3>);
                 }
             }
             else if (mstr === "Episode #" || mstr === "Season #" || mstr === "# Of Seasons" ||
                 mstr === "# Of Episodes" || mstr === "Price" || mky === "numepisodesperseason")
             {
                 //console.warn("*mydivkynm = " + (mky + mydataobj.id));
-                return (<div key={mky + mydataobj.id}>{mstr}: {mydataobj[mky]}</div>);
+                const noeditmode = (mky === "numepisodesperseason" ||
+                    mstr === "# Of Episodes" || mstr === "# Of Seasons");
+                const mynonedititem = mydataobj[mky];
+                const editstep = ((mstr === "Price") ? "any": 1);
+                const myedititem = (<><input type="number" step={editstep}
+                    value={formik.values[mky]} name={mky} onChange={formik.handleChange} />
+                    <p key={"errors" + mky}> {formik.errors[mky]}</p></>);
+                const mydispitem = ((dispeditmode && !noeditmode) ?
+                    myedititem : mynonedititem);
+                return (<div key={mky + mydataobj.id}>{mstr}: {mydispitem}</div>);
             }
             else if (mstr === "Watch Link")
             {
@@ -1287,14 +1382,33 @@ function EpisodeToyShowOrList(props){
             }
         });
         console.log("mytds = ", mytds);
+        console.log("dispeditmode = " + dispeditmode);
+        console.log("dispchangemode = " + dispchangemode);
+
+        //determine if there is an error...
+        let userrcolor = true;
+        if (!err && cc.isStringEmptyNullOrUndefined(formik.errors.name) &&
+            cc.isStringEmptyNullOrUndefined(formik.errors.description) &&
+            cc.isStringEmptyNullOrUndefined(formik.errors.season_number) &&
+            cc.isStringEmptyNullOrUndefined(formik.errors.episode_number) &&
+            cc.isStringEmptyNullOrUndefined(formik.errors.price))
+        {
+            userrcolor = false;
+        }
+        let mybgcolor = cc.getBGColorToBeUsed(userrcolor, props.typenm);
 
         //<h1>{props.typenm} For Show: {myepdataobj.showname}</h1>
         let myidstr = "";
         if (props.typenm === "Show") myidstr = "swid" + params.showid;
         else myidstr = "swid" + params.showid + "epid" + params.id;
         //console.warn("*mylnkky = containerfor" + myidstr);
+        const myform = (<form onSubmit={formik.handleSubmit}><>{mytds}</>
+            <button type="submit">Submit</button>
+            <button type="button" style={{marginLeft: "5px"}}
+                onClick={(event) => history.push("/")}>Cancel</button>
+        </form>);
         return (<div key={"containerfor" + myidstr} id={myidstr}
-            style={{backgroundColor: mybgcolor}}>{mytds}</div>);
+            style={{backgroundColor: mybgcolor}}>{dispeditmode ? myform: <>{mytds}</>}</div>);
     }//END OF DISPLAY ITEM ITSELF()
 
 
@@ -1499,13 +1613,25 @@ function EpisodeToyShowOrList(props){
                         console.log("props.epobj = ", props.epobj);
                         console.log("props.typenm = ", props.typenm);
                         console.log("props.simpusrobj.id = " + props.simpusrobj.id);
+                        console.log("mytoydataobj = ", mytoydataobj);
+                        console.log("myshowdataobj = ", myshowdataobj);
+                        console.log("myepdataobj = ", myepdataobj);
+    
 
                         let userisswowner = false;
                         if (props.typenm === "Show")
                         {
                             if (cc.isStringEmptyNullOrUndefined(shows))
                             {
-                                if (cc.isItemNullOrUndefined(props.epobj));
+                                if (cc.isItemNullOrUndefined(props.epobj))
+                                {
+                                    if (cc.isItemNullOrUndefined(myshowdataobj));
+                                    else
+                                    {
+                                        userisswowner =
+                                            (props.simpusrobj.id === myshowdataobj.owner_id);
+                                    }
+                                }
                                 else
                                 {
                                     userisswowner =
@@ -1527,12 +1653,29 @@ function EpisodeToyShowOrList(props){
                         else if (props.typenm === "Toy" || props.typenm === "Episode")
                         {
                             let mlist = null;
-                            if (props.typenm === "Toy") mlist = toys;
-                            else mlist = episodes;
+                            let mydataobjforitem = null;
+                            if (props.typenm === "Toy")
+                            {
+                                mlist = toys;
+                                mydataobjforitem = mytoydataobj;
+                            }
+                            else
+                            {
+                                mlist = episodes;
+                                mydataobjforitem = myepdataobj;
+                            }
 
                             if (cc.isStringEmptyNullOrUndefined(mlist))
                             {
-                                if (cc.isItemNullOrUndefined(props.epobj));
+                                if (cc.isItemNullOrUndefined(props.epobj))
+                                {
+                                    if (cc.isItemNullOrUndefined(mydataobjforitem));
+                                    else
+                                    {
+                                        userisswowner = (props.simpusrobj.id ===
+                                            mydataobjforitem.showownerid);
+                                    }
+                                }
                                 else
                                 {
                                     userisswowner = (props.simpusrobj.id ===
@@ -1569,29 +1712,6 @@ function EpisodeToyShowOrList(props){
     console.log("");
     console.log("NEW loaded = " + loaded);
     console.log("resetCompState = " + resetCompState);
-
-    const formSchema = yup.object().shape({
-        username: yup.string().required("You must enter a username!").min(1),
-        password: yup.string().required("You must enter a password!").min(1),
-        access_level: yup.number().positive().integer().min(1).max(2)
-        .required("You must enter the access level!")
-        .typeError("You must enter a positive integer that is either 1 or 2 here!"),
-    });
-
-    //const myinitvals = getInitialValuesObjForType();
-    const formik = useFormik({
-        initialValues: {
-            username: "",
-            password: "",
-            access_level: 0
-        },
-        enableReinitialize: true,
-        validationSchema: formSchema,
-        onSubmit: (values) => {
-            console.log("values: ", values);
-        },
-    });
-
 
     let retldingcontr = false;
     if (loaded) retldingcontr = resetCompState;
@@ -1636,7 +1756,6 @@ function EpisodeToyShowOrList(props){
     console.log("");
 
     let myeps = null;
-    let mybgcolor = cc.getBGColorToBeUsed(err, props.typenm);
     if (props.uselist)
     {
         console.log("USING A LIST!");
@@ -1697,10 +1816,7 @@ function EpisodeToyShowOrList(props){
                 return (<EpisodeToyShowOrList key={kynm} typenm={props.typenm}
                     uselist={false} useinlist={true} epobj={ep} usemy={props.usemy}
                     location={props.location} simpusrobj={props.simpusrobj}
-                    editmode={props.editmode} seteditmode={props.seteditmode}
-                    watchall={props.watchall} setWatchAll={props.setWatchAll}
-                    watcheditems={props.watcheditems}
-                    setWatchedItems={props.setWatchedItems} />);
+                    editmode={props.editmode} seteditmode={props.seteditmode} />);
             });
         }
         console.log("myeps = ", myeps);
