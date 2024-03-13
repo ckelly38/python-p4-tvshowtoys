@@ -175,6 +175,10 @@ class Commonalities:
                 return {"error": errmsg}, 401;
             else:
                 if (cls == Show):
+                    #print(item);
+                    #print(usrobj);
+                    #print(f"item.owner_id = {item.owner_id}");
+                    #print(f"usrobj.id = {usrobj.id}");
                     if (item.owner_id == usrobj.id): fully_authorized = True;
                 else:
                     if (item.show == None):
@@ -185,7 +189,7 @@ class Commonalities:
             if (fully_authorized): return {"message": "authorized"}, 200;
             else:
                 errmsg = "401 error you are not allowed to do that. You must be ";
-                errmsg += "logged in and have creation/deletion access!";
+                errmsg += "logged in and have creation/deletion access! ";
                 errmsg += "You must be the show owner to add/remove toys, or episodes!";
                 return {"error": errmsg}, 401;
         else: return {"message": "authorized"}, 200;
@@ -318,6 +322,8 @@ class Commonalities:
                     else: return resobj;
                 else:
                     print("DOING PATCH HERE!");
+                    oldswid = -1;
+                    bypassfinalcheck = False;
                     for attr in dataobj:
                         mky = '';
                         if (cls == User):
@@ -327,15 +333,26 @@ class Commonalities:
                         else: mky = '' + attr;
                         #print(f"key = {mky}");
                         #print(f"value = {dataobj[attr]}");
+                        #print("CHECKING TO SEE IF THE USER IS THE SHOW OWNER DURING PATCH!");
                         resobj = self.userIsShowOwner(cls, msess, item);
                         if (resobj[1] == 200): pass;
                         else: return resobj;
+                        if (mky == "owner_id"): oldswid = item.owner_id;
                         setattr(item, mky, dataobj[attr]);
                     print(f"NEW item = {item}");
+                    print(f"oldswid = {oldswid}");
+                    if (0 < oldswid):
+                        #print(f"item.owner_id = {item.owner_id}");
+                        if (item.owner_id != oldswid):
+                            bypassfinalcheck = True;
                 print(f"FINAL item = {item}");
-                resobj = self.userIsShowOwner(cls, msess, item);
-                if (resobj[1] == 200): pass;
-                else: return resobj;
+                print(f"bypassfinalcheck = {bypassfinalcheck}");
+                if (bypassfinalcheck): pass;
+                else:
+                    print("CHECKING TO SEE IF THE USER IS THE SHOW OWNER AFTER PATCH!");
+                    resobj = self.userIsShowOwner(cls, msess, item);
+                    if (resobj[1] == 200): pass;
+                    else: return resobj;
                 db.session.add(item);
                 db.session.commit();
             except Exception as ex:

@@ -898,6 +898,14 @@ function EpisodeToyShowOrList(props){
                     byrcanbslr = true;
                 }
             }
+            else if (props.typenm === "Show")
+            {
+                if (props.usemy)
+                {
+                    throw new Error("usemy should not be true when displaying shows!");
+                }
+                else mysellerID = props.simpusrobj.id;
+            }
             console.log("mysellerID = " + mysellerID);
             console.log("mybuyerID = " + mybuyerID);
             console.log("byrcanbslr = " + byrcanbslr);
@@ -936,15 +944,16 @@ function EpisodeToyShowOrList(props){
                 {props.simpusrobj.instatus ? (isshowowner ?
                     <button onClick={delItem}>{mybtnnm}</button>:
                     (props.typenm === "Toy" ? null: "Cannot Remove It.")): null}
-                {(props.typenm === "Toy") ?
+                {(props.typenm === "Toy" || (props.typenm === "Show" && isshowowner)) ? <>
                     <button onClick={(event) => setShowSellToyForm(!showselltoy)}>
                         {(showselltoy) ? "Hide Form":
-                            "Show Transfer Toy Form"}</button> : null}
-                {(props.typenm === "Toy" && showselltoy) ?
-                    <SellToForm sellerID={mysellerID} usertoyobj={props.epobj}
-                        atmost={mytoymax} usemax={props.usemy} initbyrIDval={mybuyerID}
-                        buyerisseller={byrcanbslr} delitemfunc={delItem}
-                        resetstate={resetState} /> : null}</td>);
+                            "Show Transfer " + props.typenm + " Form"}</button>
+                    {(showselltoy) ?
+                        <SellToForm sellerID={mysellerID} usertoyobj={props.epobj}
+                            atmost={mytoymax} usemax={props.usemy} initbyrIDval={mybuyerID}
+                            buyerisseller={byrcanbslr} delitemfunc={delItem}
+                            resetstate={resetState} typenm={props.typenm} /> : null}
+                    </> : null}</td>);
         }
         //const dispeditmode = (props.simpusrobj.instatus && props.editmode && !props.usemy);
         //console.log("props.editmode = " + props.editmode);

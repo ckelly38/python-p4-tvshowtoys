@@ -334,7 +334,9 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
         <button type="submit">{mybtnnm}</button>
         <button type="button"  style={{marginLeft: "5px"}}
             onClick={(event) => history.push("/")}>Cancel</button>
-        <button onClick={unsubscribeMe} style={{marginLeft: "50px"}}>Remove My Account</button>
+        {(typenm === "Preferences") ?
+            <button onClick={unsubscribeMe} style={{marginLeft: "50px"}}>
+                Remove My Account</button>: null}
     </form>
     <p>{(useerrcolor) ? errmsg : sucsmsg}</p>
     </div>);
