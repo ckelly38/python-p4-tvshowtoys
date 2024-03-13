@@ -23,7 +23,7 @@ class GenerateSerializableRulesClass:
         if (clsnm == "User"): return ["id", "name", "access_level"];
         elif (clsnm == "Show"): return ["id", "name", "description", "owner_id"];
         elif (clsnm == "Episode"):
-            return ["id", "name", "description", "season_number", "episode_number"];
+            return ["id", "name", "description", "season_number", "episode_number", "show_id"];
         elif (clsnm == "Toy"): return ["id", "name", "description", "price", "toy_number"];
         elif (clsnm == "UserEpisodes"): return [];
         elif (clsnm == "UserToy"): return ["quantity"];
@@ -122,6 +122,32 @@ class MyValidator:
         unms = [usr.name for usr in cls.query.all()];
         if (val in unms): raise ValueError(f"{typestr} must be unique!");
         else: return val;
+
+    def genColStringWithAndBeforeLastItem(self, cols):
+        mystr = "";
+        for n in range(len(cols)):
+            if (n + 1 < len(cols)):
+                if (n == 0): mystr += "" + cols[n];
+                else: mystr += ", " + cols[n];
+            else: mystr += ", and " + cols[n];
+        return mystr;
+
+    def isuniquecols(self, item, cls, cols):
+        if (item == None): raise ValueError("item must not be None or null!");
+        if (cls == None): raise ValueError("cls must not be None or null!");
+        if (cols == None): return item;
+        #print(item);
+        #print incoming data
+        #for mky in cols:
+        #    print(f"{mky} = {item[mky]}");
+        alldbitems = [mdbitem.to_dict() for mdbitem in cls.query.all()];
+        for dbitem in alldbitems:
+            for mky in cols:
+                if (dbitem[mky] == item[mky]): pass;
+                else:
+                    raise ValueError("the " + self.genColStringWithAndBeforeLastItem(cols) +
+                                     " were already found on the DB! They must be unique!");                    
+        return item;
 
 mv = MyValidator();
 
@@ -258,6 +284,9 @@ class Show(db.Model, SerializerMixin):
         mystr += f"owner={self.owner}, episode_ids={self.getEpisodeIds()}>";
         return mystr;
 
+#db.UniqueConstraint("episode_number", "season_number", "show_id",
+#                                         name="unique_showid_epnumsnnumcombo")
+
 class Episode(db.Model, SerializerMixin):
     __tablename__ = "episodes";
 
@@ -305,6 +334,13 @@ class Episode(db.Model, SerializerMixin):
     @validates("description")
     def isdescriptionvalid(self, key, val):
         return mv.isstringnotblank(val, "episode description");
+
+    def makeSureUniqueShowIDEpnumAndSeasonNumPresent(self):
+        #print(self);
+        item = mv.isuniquecols(self.to_dict(), Episode,
+                               ["episode_number", "season_number", "show_id"]);
+        if (item == None): raise ValueError("item must not be none!");
+        else: return self;
 
     def getUserIds(self):
         return [usr.id for usr in self.users];
@@ -377,6 +413,13 @@ class Toy(db.Model, SerializerMixin):
     @validates("description")
     def isdescriptionvalid(self, key, val):
         return mv.isstringnotblank(val, "toy description");
+
+    def makeSureUniqueShowIDAndToyNumPresent(self):
+        #print(self);
+        item = mv.isuniquecols(self.to_dict(), Toy,
+                               ["toy_number", "show_id"]);
+        if (item == None): raise ValueError("item must not be none!");
+        else: return self;
 
     def __repr__(self):
         mystr = f"<Toy id={self.id}, show-id={self.show_id}, price={self.price}, ";

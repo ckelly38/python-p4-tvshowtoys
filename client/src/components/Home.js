@@ -24,6 +24,10 @@ function Home({simpusrobj}) {
     const warnmsglpart = "to get the website to crash! That is on you!";
     const ownshowmsg = "NOTE: To own a show, you can create it or have the current owner " +
         "set you as the new owner.";
+    const errmsgwarning = "NOTE: If you see a red background and it is not the normal " +
+        "background color, then an error occured and you should probably look at the " +
+        "browser console to figure out what the error is. To do that right-click on " +
+        "the page and click inspect, then click console.";
     const dispmsg = "displayed to other users!";
 
     return (<div><h1>Home</h1><h2>{welcomemsg}</h2>
@@ -47,6 +51,7 @@ function Home({simpusrobj}) {
             <li><b>remove</b> episodes, toys, and shows.</li>
         </ul></ul>
         <p>{ownshowmsg}</p>
+        <p>{errmsgwarning}</p>
         <p><b>{warnfpart}</b>{warnmsgmidpart}<b>{warnmsglpart}</b></p></div>);
 }
 

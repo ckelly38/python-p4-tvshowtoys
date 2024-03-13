@@ -799,6 +799,7 @@ function EpisodeToyShowOrList(props){
 
     function delItem(event)
     {
+        console.log("INSIDE OF DEL-ITEM():");
         console.log(event);
         console.log("props.epobj = ", props.epobj);
         let myconfigobj = {
@@ -811,14 +812,30 @@ function EpisodeToyShowOrList(props){
         let myurl = "";
         if (props.typenm === "Episode" || props.typenm === "Toy")
         {
-            myurl = "" + props.location.pathname + "/" +
-                props.epobj[props.typenm.toLowerCase()].id;
+            console.log("props.usemy = " + props.usemy);
+            console.log("props.location.pathname = " + props.location.pathname);
+            if (props.usemy)
+            {
+                myurl = "" + props.location.pathname + "/" +
+                    props.epobj[props.typenm.toLowerCase()].id;
+            }
+            else
+            {
+                if (props.typenm === "Episode")
+                {
+                    myurl = "" + props.location.pathname + "/" +
+                        props.epobj.episode_number;
+                }
+                else myurl = "/toys/" + props.epobj.id;
+            }
         }
         else throw new Error(invtypeeportoyonlyerrmsg);
         console.log("myurl = " + myurl);
+        
         fetch(myurl, myconfigobj)
         .then((res) => res.json()).then((data) => {
             console.log(data);
+            
             let dkys = Object.keys(data);
             console.log(dkys);
             for (let n = 0; n < dkys.length; n++)
@@ -830,6 +847,8 @@ function EpisodeToyShowOrList(props){
                     return;
                 }
             }
+            
+            console.log("item successfully deleted!");
             //resetState();//did not work
             //return (<Redirect to="/redirectme" />);//did not work
             history.push("/redirectme");//works due to history.goBack() on route.
@@ -1146,6 +1165,7 @@ function EpisodeToyShowOrList(props){
             style={{backgroundColor: mybgcolor}}>{mytds}</tr>);
     }//END OF DISPLAY ITEM IN A LIST()
 
+
     //TOYS: name, price, description
     //SHOWS: name, description
     //EPISODES: name, season #, episode #, description
@@ -1211,6 +1231,8 @@ function EpisodeToyShowOrList(props){
         validationSchema: formSchema,
         onSubmit: (values) => {
             console.log("values: ", values);
+            console.log("props.typenm = " + props.typenm);
+            console.log("props.epobj = ", props.epobj);
             console.error("NOT DONE YET WITH THE UDPATE REQUEST FOR THE FORM!");
         },
     });

@@ -285,6 +285,7 @@ class Commonalities:
         if (self.isClsValid(cls)):
             try:
                 cls.getValidator().enableValidator();
+                bypassfinalcheck = False;
                 if (useadd):
                     print("DOING POST HERE!");
                     if (cls == User):
@@ -298,12 +299,18 @@ class Commonalities:
                         item = cls(name=dataobj["name"], description=dataobj["description"],
                                 season_number=dataobj["season_number"],
                                 episode_number=dataobj["episode_number"], show_id=showid);
+                        #print(item);
+                        myresitem = item.makeSureUniqueShowIDEpnumAndSeasonNumPresent();
+                        #print(myresitem);
                     elif (cls == Toy):
                         item = cls(name=dataobj["name"], description=dataobj["description"],
                                 price=dataobj["price"], toy_number=dataobj["toy_number"],
                                 show_id=self.getShowIDFrom(dataobj, showid));
                         #show-id comes in the dataobj object: dataobj["show_id"]
                         #show-id comes in as a parameter: showid
+                        #print(item);
+                        myresitem = item.makeSureUniqueShowIDAndToyNumPresent();
+                        #print(myresitem);
                     elif (cls == UserEpisodes):
                         #user-id comes in the session object: msess["user_id"]
                         #user-id comes in the dataobj object: dataobj["user_id"]
@@ -323,7 +330,6 @@ class Commonalities:
                 else:
                     print("DOING PATCH HERE!");
                     oldswid = -1;
-                    bypassfinalcheck = False;
                     for attr in dataobj:
                         mky = '';
                         if (cls == User):
@@ -353,6 +359,14 @@ class Commonalities:
                     resobj = self.userIsShowOwner(cls, msess, item);
                     if (resobj[1] == 200): pass;
                     else: return resobj;
+                if (cls == Episode):
+                    #print(item);
+                    myresitem = item.makeSureUniqueShowIDEpnumAndSeasonNumPresent();
+                    #print(myresitem);
+                elif (cls == Toy):
+                    #print(item);
+                    myresitem = item.makeSureUniqueShowIDAndToyNumPresent();
+                    #print(myresitem);
                 db.session.add(item);
                 db.session.commit();
             except Exception as ex:

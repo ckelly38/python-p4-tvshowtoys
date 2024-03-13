@@ -380,6 +380,8 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
             let getinfofromstate = false;
             if (typenm === "Toy" || typenm === "Episode")
             {
+                console.log("myeps = ", myeps);
+
                 let mynweps = myeps.filter((item) =>
                     (item.show.id === Number(values.show_id)));
                 console.log("values.show_id = " + values.show_id);
