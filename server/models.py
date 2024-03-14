@@ -284,9 +284,6 @@ class Show(db.Model, SerializerMixin):
         mystr += f"owner={self.owner}, episode_ids={self.getEpisodeIds()}>";
         return mystr;
 
-#db.UniqueConstraint("episode_number", "season_number", "show_id",
-#                                         name="unique_showid_epnumsnnumcombo")
-
 class Episode(db.Model, SerializerMixin):
     __tablename__ = "episodes";
 
@@ -294,7 +291,9 @@ class Episode(db.Model, SerializerMixin):
     __table_args__ = (db.CheckConstraint("length(description) >= 1"),
                      db.CheckConstraint("length(name) >= 1"),
                      db.CheckConstraint("season_number >= 1"),
-                     db.CheckConstraint("episode_number >= 1"));
+                     db.CheckConstraint("episode_number >= 1"),
+                     db.UniqueConstraint("episode_number", "season_number", "show_id",
+                                         name="unique_showid_epnumsnnumcombo"));
 
     #if I want to use postgressql and deploy using render change this to SERIAL
     id = db.Column(db.Integer, primary_key=True);
