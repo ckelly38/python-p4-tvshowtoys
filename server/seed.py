@@ -90,7 +90,7 @@ if __name__ == '__main__':
                           episode_number=2,
                           show=pm,
                           description="Ash battles team Rocket at the Pokemon Center and " +
-                          "Team Rocket destroys it. Ash an Pickachu are finally well bonded.");
+                          "Team Rocket destroys it. Ash and Pickachu are finally well bonded.");
         print(eppmtwo);
         db.session.add(eppmtwo);
         db.session.commit();

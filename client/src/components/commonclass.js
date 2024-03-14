@@ -1,5 +1,3 @@
-import { createContext } from "react";
-
 class CommonClass{
     isItemNullOrUndefined(val)
     {
@@ -180,8 +178,22 @@ class CommonClass{
         else throw new Error("teps must be a positive or zero integer!");
         //console.log("numseasons = " + numseasons);
 
-        let rmndr = (teps % numseasons);
-        let numepsperseason = (teps / numseasons);
+        let rmndr = -1;
+        let numepsperseason = -1;
+        if (numseasons === 0)
+        {
+            if (teps === 0)
+            {
+                rmndr = 0;
+                numepsperseason = 0;
+            }
+            else throw new Error("if numseasons is zero, then teps must also be zero!");
+        }
+        else
+        {
+            rmndr = (teps % numseasons);
+            numepsperseason = (teps / numseasons);
+        }
         //console.log("numepsperseason = " + numepsperseason);
         //console.log("rmndr = " + rmndr);
 

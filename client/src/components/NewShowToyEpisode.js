@@ -409,7 +409,8 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                 }
                 else doinfofetch = true;
             }
-            //else;//do nothing
+            else if (typenm === "Show") doinfofetch = false;
+            else throw new Error(typenmerrmsg);
             console.log("getinfofromstate = " + getinfofromstate);
             console.log("doinfofetch = " + doinfofetch);
             console.log("NEW dopostfetch = " + dopostfetch);
@@ -493,6 +494,8 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
                 }
             }
             console.log("FINAL dopostfetch = " + dopostfetch);
+            console.log("FINAL values = ", values);
+            console.log("FINAL murl = " + murl);
             
             if (dopostfetch) myOnSubmitPostDataRequest(values, murl);
             else
@@ -551,7 +554,8 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
         <form onSubmit={formik.handleSubmit}>
             <label id="namelbl" htmlFor="myitemname">{typenm} name: </label>
             <input id="myitemname" type="text" name="name" value={formik.values.name}
-                placeholder={"Enter " + typenm + " name"} onChange={formik.handleChange} />
+                placeholder={"Enter " + typenm + " name"} onChange={formik.handleChange}
+                autoComplete="given-name" />
             <p> {formik.errors.name}</p>
             <label id="desclbl" htmlFor="mydesc">Description: </label>
             <input id="mydesc" type="text" name="description" value={formik.values.description}
@@ -587,6 +591,8 @@ function NewShowToyEpisode({typenm, simpusrobj}) {
             <p> {formik.errors.price}</p></>: null}
 
             <button type="submit">Create {typenm} Now!</button>
+            <button type="button" style={{marginLeft: "5px"}}
+                onClick={(event) => history.push("/")}>Cancel</button>
         </form>
         <p>{(useerrcolor) ? errmsg : sucsmsg}</p>
     </div>);

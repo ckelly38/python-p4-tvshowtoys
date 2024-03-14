@@ -136,17 +136,21 @@ class MyValidator:
         if (item == None): raise ValueError("item must not be None or null!");
         if (cls == None): raise ValueError("cls must not be None or null!");
         if (cols == None): return item;
-        #print(item);
+        print(item);
         #print incoming data
-        #for mky in cols:
-        #    print(f"{mky} = {item[mky]}");
+        for mky in cols:
+            print(f"{mky} = {item[mky]}");
         alldbitems = [mdbitem.to_dict() for mdbitem in cls.query.all()];
         for dbitem in alldbitems:
+            itemisamatch = True;
             for mky in cols:
                 if (dbitem[mky] == item[mky]): pass;
                 else:
-                    raise ValueError("the " + self.genColStringWithAndBeforeLastItem(cols) +
-                                     " were already found on the DB! They must be unique!");                    
+                    itemisamatch = False;
+                    break;
+            if (itemisamatch):
+                raise ValueError("the " + self.genColStringWithAndBeforeLastItem(cols) +
+                                 " were already found on the DB! They must be unique!");                  
         return item;
 
 mv = MyValidator();

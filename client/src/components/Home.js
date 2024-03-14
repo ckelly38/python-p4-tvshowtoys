@@ -52,6 +52,7 @@ function Home({simpusrobj}) {
         </ul></ul>
         <p>{ownshowmsg}</p>
         <p>{errmsgwarning}</p>
+        <p><b>DISCLAIMER: No money is exchanged. This is a demo only site.</b></p>
         <p><b>{warnfpart}</b>{warnmsgmidpart}<b>{warnmsglpart}</b></p></div>);
 }
 

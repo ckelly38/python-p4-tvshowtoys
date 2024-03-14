@@ -829,7 +829,8 @@ function EpisodeToyShowOrList(props){
                 else myurl = "/toys/" + props.epobj.id;
             }
         }
-        else throw new Error(invtypeeportoyonlyerrmsg);
+        else if (props.typenm === "Show") myurl = "/shows/" + props.epobj.id;
+        else throw new Error(invalidTypeErrMsg);
         console.log("myurl = " + myurl);
         
         fetch(myurl, myconfigobj)
@@ -1230,10 +1231,131 @@ function EpisodeToyShowOrList(props){
         enableReinitialize: true,
         validationSchema: formSchema,
         onSubmit: (values) => {
+            console.log("INSIDE OF UPDATE PAGE EDIT MODE SUBMIT():");
+
+            //get the dataobj from state
+            let mydataobj = getDataObjectFromType();
             console.log("values: ", values);
             console.log("props.typenm = " + props.typenm);
-            console.log("props.epobj = ", props.epobj);
-            console.error("NOT DONE YET WITH THE UDPATE REQUEST FOR THE FORM!");
+            console.log("props.epobj = ", props.epobj);//null so need something different
+            console.log("mydataobj = ", mydataobj);
+
+            const vkys = Object.keys(values);
+            console.log("vkys = ", vkys);
+
+            let mysvrobj = {};
+            let dopatch = false;
+            for (let n = 0; n < vkys.length; n++)
+            {
+                //compare the data with the object on the dataobj
+                //if they are different add it
+                //if they are the same do not add it
+                console.log("cky = vkys[" + n + "] = " + vkys[n]);
+                if (values[vkys[n]] === mydataobj[vkys[n]])
+                {
+                    //do not add it
+                    console.log("this is the same!");
+                }
+                else
+                {
+                    //add it
+                    console.log("this is different!");
+                    mysvrobj[vkys[n]] = values[vkys[n]];
+                    if (dopatch);
+                    else dopatch = true;
+                }
+            }
+            //include the id(s) from dataobj regardless owner_id showid show_id and id
+            //show NEED the id
+            //episode NEED showid and episode_number
+            //toy NEED the id or showid and toy_number
+
+            const mdkys = Object.keys(mydataobj);
+            console.log("mdkys = ", mdkys);
+            
+            const myidsnms = ["id", "showid", "show_id", "owner_id", "episode_number",
+                "toy_number"];
+            for (let n = 0; n < mdkys.length; n++)
+            {
+                if (cc.isStringAOnStringBList(mdkys[n], myidsnms))
+                {
+                    //add it
+                    console.log("adding this item!");
+                    mysvrobj[mdkys[n]] = mydataobj[mdkys[n]];
+                }
+                //else;//do nothing
+            }
+            console.log("dopatch = " + dopatch);
+            console.log("mysvrobj = ", mysvrobj);
+
+            if (dopatch);//proceed below
+            else
+            {
+                console.log("no changes made so turning off edit mode!");
+                props.seteditmode(false);
+                return;
+            }
+            console.log("myurl = props.location.pathname = " + props.location.pathname);
+
+
+            //patch only needs the ID and what changed
+            let myconfigobj = {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(mysvrobj)
+            };
+            fetch(props.location.pathname, myconfigobj).then((res) => res.json())
+            .then((data) => {
+                console.log(data);
+                
+                if (data === undefined || data === null)
+                {
+                    setErrorMessageState("got an empty response from the server! " +
+                        "Failed to update the server data!");
+                }
+                else
+                {
+                    let dkys = Object.keys(data);
+                    console.log(dkys);
+                    for (let n = 0; n < dkys.length; n++)
+                    {
+                        if (dkys[n] === "error")
+                        {
+                            console.error(data["error"]);
+                            //setErrorMessageState(data["error"]);
+                            return;
+                        }
+                    }
+                    
+                    
+                    //tell the user the update was successful
+                    //update state
+                    //reload page somehow via state or sling-shot route
+                    console.log("updating the server was successful!");
+                    
+                    let mynwdobj = {...mydataobj};
+                    
+                    const mysrvrkys = Object.keys(mysvrobj);
+                    console.log("mysrvrkys = ", mysrvrkys);
+
+                    for (let n = 0; n < mysrvrkys.length; n++)
+                    {
+                        mynwdobj[mysrvrkys[n]] = mysvrobj[mysrvrkys[n]];
+                    }
+                    console.log("mynwdobj = " + mynwdobj);
+                    
+                    genAndSetNewDataStateObject(mynwdobj, null);
+                    props.seteditmode(false);
+                }
+            }).catch((merr) => {
+                console.error("there was an error updating data on the server!");
+                console.error(merr);
+                //setErrorMessageState(merr.message);
+                //setError(true);
+            });
         },
     });
 
@@ -1327,7 +1449,8 @@ function EpisodeToyShowOrList(props){
                 const mynonedititem = mynmstr;
                 const myedititem = (<div style={{display: "inline-block"}}>
                     {"" + props.typenm + " Name: "}<input type="text" name="name"
-                    value={formik.values.name} onChange={formik.handleChange} />
+                    value={formik.values.name} onChange={formik.handleChange}
+                    autoComplete="given-name" />
                     <p key={"errorsname"}>{formik.errors.name}</p></div>);
                 const mydispitem = (dispeditmode ? myedititem : mynonedititem);
                 if (props.typenm === "Show")
@@ -1456,12 +1579,12 @@ function EpisodeToyShowOrList(props){
         let myprofittds = null;
         if (err)
         {
-            myprofittds = [<tr className="border">
-                <td className="border">0</td>
-                <td className="redbgclrtxtcntrborder">0</td>
-                <td className="redbgclrtxtcntrborder">0</td>
-                <td className="redbgclrtxtcntrborder">0</td>
-                <td className="redbgclrtxtcntrborder">0</td>
+            myprofittds = [<tr key={"errorrowfortoyid"} className="border">
+                <td key={"errortoyidcol"} className="border">0</td>
+                <td key={"errornumtoyscol"} className="redbgclrtxtcntrborder">0</td>
+                <td key={"erroractualpricetoycol"} className="redbgclrtxtcntrborder">0</td>
+                <td key={"errorcalcdpricetoycol"} className="redbgclrtxtcntrborder">0</td>
+                <td key={"errorcalcdprofittoycol"} className="redbgclrtxtcntrborder">0</td>
             </tr>];
         }
         else
@@ -1595,12 +1718,17 @@ function EpisodeToyShowOrList(props){
                     let mitemcost = mitem.quantity * mitem.price;
                     tprofit += mitemcost;
 
-                    return (<tr className="border">
-                        <td className="border">{mitem.toy_id}</td>
-                        <td className="border">{mitem.quantity}</td>
-                        <td className="border">{mitem.actual_price}</td>
-                        <td className="border">{mitem.price}</td>
-                        <td className="border">{mitemcost}</td>
+                    return (<tr key={"rowfortoyid" + mitem.toy_id} className="border">
+                        <td key={"toyidcol" + mitem.toy_id} className="border">
+                            {mitem.toy_id}</td>
+                        <td key={"numtoyscol" + mitem.toy_id} className="border">
+                            {mitem.quantity}</td>
+                        <td key={"actualpricetoycol" + mitem.toy_id} className="border">
+                            {mitem.actual_price}</td>
+                        <td key={"calcdpricetoycol" + mitem.toy_id} className="border">
+                            {mitem.price}</td>
+                        <td key={"calcdprofittoycol" + mitem.toy_id} className="border">
+                            {mitemcost}</td>
                     </tr>);
                 });
             }
