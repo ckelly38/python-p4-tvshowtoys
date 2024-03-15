@@ -329,7 +329,16 @@ class Commonalities:
                     else: return resobj;
                 else:
                     print("DOING PATCH HERE!");
-                    oldswid = -1;
+                    resobj = self.userIsShowOwner(cls, msess, item);
+                    if (resobj[1] == 200): pass;
+                    else: return resobj;
+                    #oldswid = -1;
+                    print(f"item = {item}");
+                    print(f"dataobj = {dataobj}");
+                    if (cls == Episode or cls == Toy):
+                        cv = cls.getValidator();
+                        myresitem = cv.genDictItemForIsUniqueCols(item, dataobj, cls);
+
                     for attr in dataobj:
                         mky = '';
                         if (cls == User):
@@ -343,14 +352,11 @@ class Commonalities:
                         resobj = self.userIsShowOwner(cls, msess, item);
                         if (resobj[1] == 200): pass;
                         else: return resobj;
-                        if (mky == "owner_id"): oldswid = item.owner_id;
+                        #if (mky == "owner_id"): oldswid = item.owner_id;
                         setattr(item, mky, dataobj[attr]);
                     print(f"NEW item = {item}");
-                    print(f"oldswid = {oldswid}");
-                    if (0 < oldswid):
-                        #print(f"item.owner_id = {item.owner_id}");
-                        if (item.owner_id != oldswid):
-                            bypassfinalcheck = True;
+                    #print(f"oldswid = {oldswid}");
+                    bypassfinalcheck = True;
                 print(f"FINAL item = {item}");
                 print(f"bypassfinalcheck = {bypassfinalcheck}");
                 if (bypassfinalcheck): pass;
@@ -359,14 +365,15 @@ class Commonalities:
                     resobj = self.userIsShowOwner(cls, msess, item);
                     if (resobj[1] == 200): pass;
                     else: return resobj;
-                if (cls == Episode):
-                    #print(item);
-                    myresitem = item.makeSureUniqueShowIDEpnumAndSeasonNumPresent();
-                    #print(myresitem);
-                elif (cls == Toy):
-                    #print(item);
-                    myresitem = item.makeSureUniqueShowIDAndToyNumPresent();
-                    #print(myresitem);
+                if (useadd):
+                    if (cls == Episode):
+                        #print(item);
+                        myresitem = item.makeSureUniqueShowIDEpnumAndSeasonNumPresent();
+                        #print(myresitem);
+                    elif (cls == Toy):
+                        #print(item);
+                        myresitem = item.makeSureUniqueShowIDAndToyNumPresent();
+                        #print(myresitem);
                 db.session.add(item);
                 db.session.commit();
             except Exception as ex:
@@ -526,7 +533,7 @@ class Unsubscribe(Resource):
     def delete(self):
         usr = cm.getUserFromTheSession(session);
         if (usr == None): return {"error": "401 error no users logged in!"}, 401;
-        else: return cm.removeItemGivenItemFromDBAndReturnResponse(usr.id, User, usr);
+        else: return cm.removeItemGivenItemFromDBAndReturnResponse(usr.id, User, usr, session);
 
 api.add_resource(Unsubscribe, "/unsubscribe");
 
@@ -666,6 +673,25 @@ class EpisodesByID(Resource):
         return cm.completeDeleteItemFromDBAndReturnResponse(id, Episode, session);
 
 api.add_resource(EpisodesByID, "/shows/<int:showid>/episodes/<int:epnum>");
+
+class OtherEpisodesByID(Resource):
+    def get(self, id):
+        return cm.getItemByIDAndReturnResponse(id, Episode, 3);
+
+    def patch(self, id):
+        item = cm.getItemByID(id, Episode, cm.getUserIDFrom(session, None, 0));
+        if (item == None):
+            errmsg = f"404 error item of type {cm.getTypeStringForClass(Episode)}";
+            errmsg += f", with id {id} not found!";
+            return {"error": errmsg}, 404;
+        else:
+            return cm.postOrPatchAndReturnResponse(Episode, request, session, False,
+                                               item.show.id, id, 3);
+
+    def delete(self, id):
+        return cm.completeDeleteItemFromDBAndReturnResponse(id, Episode, session);
+
+api.add_resource(OtherEpisodesByID, "/episodes_by_ID/<int:id>");
 
 class Shows(Resource):
     def get(self):

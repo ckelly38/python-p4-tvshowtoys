@@ -129,8 +129,10 @@ function SignUpLoginPreferences({typenm, simpusrobj, setuser}) {
                                     return;
                                 }
                             }
-        
+                            
+                            console.log("successfully unsubscribed the user!");
                             setSuccessMsg(mdata["message"]);
+                            history.push("/logout");
                         }
                     }).catch((merr) => {
                         const myerrmsg = "There was a problem unsubscribing the user!";

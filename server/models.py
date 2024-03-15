@@ -138,9 +138,9 @@ class MyValidator:
         if (cols == None): return item;
         print(item);
         #print incoming data
-        for mky in cols:
-            print(f"{mky} = {item[mky]}");
+        for mky in cols: print(f"{mky} = {item[mky]}");
         alldbitems = [mdbitem.to_dict() for mdbitem in cls.query.all()];
+        for dbitem in alldbitems: print(dbitem);
         for dbitem in alldbitems:
             itemisamatch = True;
             for mky in cols:
@@ -152,6 +152,22 @@ class MyValidator:
                 raise ValueError("the " + self.genColStringWithAndBeforeLastItem(cols) +
                                  " were already found on the DB! They must be unique!");                  
         return item;
+
+    def genDictItemWithNewDataObjAndReturnIsUniqueCols(self, item, nvalobj, cls):
+        if (item == None): raise ValueError("item must not be None or null!");
+        if (cls == None): raise ValueError("cls must not be None or null!");
+        myitemdict = item.to_dict();
+        print(f"OLD myitemdict = {myitemdict}");
+        for mky in nvalobj: myitemdict[mky] = nvalobj[mky];
+        print(f"NEW myitemdict = {myitemdict}");
+        cols = None;
+        if (cls == Episode): cols = ["episode_number", "season_number", "show_id"];
+        elif (cls == Toy): cols = ["toy_number", "show_id"];
+        else: raise ValueError("cls must be Episode or Toy, but it was not!");
+        return self.isuniquecols(myitemdict, cls, cols);
+    
+    def genDictItemForIsUniqueCols(self, item, nvalobj, cls):
+        return self.genDictItemWithNewDataObjAndReturnIsUniqueCols(item, nvalobj, cls);
 
 mv = MyValidator();
 

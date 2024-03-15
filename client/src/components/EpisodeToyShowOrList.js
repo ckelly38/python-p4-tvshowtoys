@@ -29,6 +29,7 @@ function EpisodeToyShowOrList(props){
     let [loaded, setLoaded] = useState(false);
     let [showselltoy, setShowSellToyForm] = useState(false);
     let [err, setError] = useState(false);
+    let [updateerrmsg, setUpdateErrorMsg] = useState("");
     let [cusrisshowowner, setCurrentUserIsShowOwner] = useState(false);
     let [episodes, setEpisodes] = useState([]);
     let [shows, setShows] = useState([]);
@@ -1239,12 +1240,13 @@ function EpisodeToyShowOrList(props){
             console.log("props.typenm = " + props.typenm);
             console.log("props.epobj = ", props.epobj);//null so need something different
             console.log("mydataobj = ", mydataobj);
-
+            
             const vkys = Object.keys(values);
             console.log("vkys = ", vkys);
 
-            let mysvrobj = {};
             let dopatch = false;
+            let mysvrobj = {};
+            let ceportoynum = false;
             for (let n = 0; n < vkys.length; n++)
             {
                 //compare the data with the object on the dataobj
@@ -1263,30 +1265,20 @@ function EpisodeToyShowOrList(props){
                     mysvrobj[vkys[n]] = values[vkys[n]];
                     if (dopatch);
                     else dopatch = true;
+                    if (ceportoynum);
+                    else
+                    {
+                        if (vkys[n] === "episode_number" || vkys[n] === "toy_number")
+                        {
+                            ceportoynum = true;
+                        }
+                    }
                 }
             }
-            //include the id(s) from dataobj regardless owner_id showid show_id and id
-            //show NEED the id
-            //episode NEED showid and episode_number
-            //toy NEED the id or showid and toy_number
-
-            const mdkys = Object.keys(mydataobj);
-            console.log("mdkys = ", mdkys);
-            
-            const myidsnms = ["id", "showid", "show_id", "owner_id", "episode_number",
-                "toy_number"];
-            for (let n = 0; n < mdkys.length; n++)
-            {
-                if (cc.isStringAOnStringBList(mdkys[n], myidsnms))
-                {
-                    //add it
-                    console.log("adding this item!");
-                    mysvrobj[mdkys[n]] = mydataobj[mdkys[n]];
-                }
-                //else;//do nothing
-            }
+            mysvrobj.id = mydataobj.id;
             console.log("dopatch = " + dopatch);
             console.log("mysvrobj = ", mysvrobj);
+            console.log("ceportoynum = " + ceportoynum);
 
             if (dopatch);//proceed below
             else
@@ -1295,8 +1287,17 @@ function EpisodeToyShowOrList(props){
                 props.seteditmode(false);
                 return;
             }
-            console.log("myurl = props.location.pathname = " + props.location.pathname);
+            console.log("props.location.pathname = " + props.location.pathname);
 
+            //get, update, or delete episodes by id only
+            //we will only access it by the id regardless of what it actually is
+            //then all data can be set correctly
+            let myurl = "";
+            if (props.typenm === "Show") myurl = "/shows/" + mysvrobj.id;
+            else if (props.typenm === "Toy") myurl = "/toys/" + mysvrobj.id;
+            else if (props.typenm === "Episode") myurl = "/episodes_by_ID/" + mysvrobj.id;
+            else throw new Error(invalidTypeErrMsg);
+            console.log("myurl = " + myurl);
 
             //patch only needs the ID and what changed
             let myconfigobj = {
@@ -1307,14 +1308,17 @@ function EpisodeToyShowOrList(props){
                 },
                 body: JSON.stringify(mysvrobj)
             };
-            fetch(props.location.pathname, myconfigobj).then((res) => res.json())
+            fetch(myurl, myconfigobj).then((res) => res.json())
             .then((data) => {
                 console.log(data);
                 
                 if (data === undefined || data === null)
                 {
-                    setErrorMessageState("got an empty response from the server! " +
-                        "Failed to update the server data!");
+                    const myerrmsgcurrent = "got an empty response from the server! " +
+                        "Failed to update the server data!";
+                    console.error(myerrmsgcurrent);
+                    setUpdateErrorMsg(myerrmsgcurrent);
+                    setError(true);
                 }
                 else
                 {
@@ -1325,36 +1329,45 @@ function EpisodeToyShowOrList(props){
                         if (dkys[n] === "error")
                         {
                             console.error(data["error"]);
-                            //setErrorMessageState(data["error"]);
+                            setUpdateErrorMsg(data["error"]);
+                            setError(true);
                             return;
                         }
                     }
-                    
                     
                     //tell the user the update was successful
                     //update state
                     //reload page somehow via state or sling-shot route
                     console.log("updating the server was successful!");
+                    genAndSetNewDataStateObject(data, null);
                     
-                    let mynwdobj = {...mydataobj};
+                    //if the episode_number or toy_number changed,
+                    //we need to go somewhere else
+                    console.log("ceportoynum = " + ceportoynum);
+                    console.log("params.showid = " + params.showid);
                     
-                    const mysrvrkys = Object.keys(mysvrobj);
-                    console.log("mysrvrkys = ", mysrvrkys);
-
-                    for (let n = 0; n < mysrvrkys.length; n++)
+                    if (ceportoynum)
                     {
-                        mynwdobj[mysrvrkys[n]] = mysvrobj[mysrvrkys[n]];
+                        if (cc.isInteger(params.showid));
+                        else throw new Error("params.showid must be an integer!");
+
+                        const nwbaseurl = "/shows/" + params.showid;
+                        let nwurl = "" + nwbaseurl;
+                        if (props.typenm === "Episode") nwurl += "/episodes";
+                        else if (props.typenm === "Toy") nwurl += "/toys";
+                        else throw new Error(invtypeeportoyonlyerrmsg);
+                        console.log("nwurl = " + nwurl);
+
+                        history.push(nwurl);
                     }
-                    console.log("mynwdobj = " + mynwdobj);
-                    
-                    genAndSetNewDataStateObject(mynwdobj, null);
+                    //else;//do nothing
                     props.seteditmode(false);
                 }
             }).catch((merr) => {
                 console.error("there was an error updating data on the server!");
                 console.error(merr);
-                //setErrorMessageState(merr.message);
-                //setError(true);
+                setUpdateErrorMsg(merr.message);
+                setError(true);
             });
         },
     });
@@ -1541,7 +1554,8 @@ function EpisodeToyShowOrList(props){
 
         //determine if there is an error...
         let userrcolor = true;
-        if (!err && cc.isStringEmptyNullOrUndefined(formik.errors.name) &&
+        if (!err && cc.isStringEmptyNullOrUndefined(updateerrmsg) &&
+            cc.isStringEmptyNullOrUndefined(formik.errors.name) &&
             cc.isStringEmptyNullOrUndefined(formik.errors.description) &&
             cc.isStringEmptyNullOrUndefined(formik.errors.season_number) &&
             cc.isStringEmptyNullOrUndefined(formik.errors.episode_number) &&
@@ -1562,7 +1576,8 @@ function EpisodeToyShowOrList(props){
                 onClick={(event) => history.push("/")}>Cancel</button>
         </form>);
         return (<div key={"containerfor" + myidstr} id={myidstr}
-            style={{backgroundColor: mybgcolor}}>{dispeditmode ? myform: <>{mytds}</>}</div>);
+            style={{backgroundColor: mybgcolor}}>{dispeditmode ? myform: <>{mytds}</>}
+            {err ? <p>{updateerrmsg}</p>: null}</div>);
     }//END OF DISPLAY ITEM ITSELF()
 
 
@@ -1716,20 +1731,29 @@ function EpisodeToyShowOrList(props){
                     console.log("mitem = ", mitem);
 
                     let mitemcost = mitem.quantity * mitem.price;
-                    tprofit += mitemcost;
+                    if (mitem.show_owner_id === props.simpusrobj.id)
+                    {
+                        console.log("the current user owns the show!");
+                        tprofit += mitemcost;
 
-                    return (<tr key={"rowfortoyid" + mitem.toy_id} className="border">
-                        <td key={"toyidcol" + mitem.toy_id} className="border">
-                            {mitem.toy_id}</td>
-                        <td key={"numtoyscol" + mitem.toy_id} className="border">
-                            {mitem.quantity}</td>
-                        <td key={"actualpricetoycol" + mitem.toy_id} className="border">
-                            {mitem.actual_price}</td>
-                        <td key={"calcdpricetoycol" + mitem.toy_id} className="border">
-                            {mitem.price}</td>
-                        <td key={"calcdprofittoycol" + mitem.toy_id} className="border">
-                            {mitemcost}</td>
-                    </tr>);
+                        return (<tr key={"rowfortoyid" + mitem.toy_id} className="border">
+                            <td key={"toyidcol" + mitem.toy_id} className="border">
+                                {mitem.toy_id}</td>
+                            <td key={"numtoyscol" + mitem.toy_id} className="border">
+                                {mitem.quantity}</td>
+                            <td key={"actualpricetoycol" + mitem.toy_id} className="border">
+                                {mitem.actual_price}</td>
+                            <td key={"calcdpricetoycol" + mitem.toy_id} className="border">
+                                {mitem.price}</td>
+                            <td key={"calcdprofittoycol" + mitem.toy_id} className="border">
+                                {mitemcost}</td>
+                        </tr>);
+                    }
+                    else
+                    {
+                        console.log("the current user does not own the show!");
+                        return null;
+                    }
                 });
             }
             //else;//do nothing
