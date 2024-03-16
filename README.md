@@ -1,3 +1,151 @@
+# TV Shows And Toys Project Info
+
+## Basic Set-Up:
+
+Home Shows Episodes Toys Login SignUp Preferences ] NAVBAR
+
+Main Content will be displayed here ] The other component
+
+## What it does?
+
+This shows information about shows, episodes for the show, and toys produced about it.
+
+Additionally users have the ability to create an account via SignUp. Then they can Login.
+
+They can edit it if they are show owners.
+
+If they want to create new shows, they can upgrade to creation access level 2.
+
+Then they can create a show, then add episodes, and toys. They can also edit this information.
+
+If they don't want this information anymore, show owners can remove information.
+
+You must be logged in to view episodes that you have watched or to see and purchase toys.
+
+You can also remove episodes from your watch history or get rid of or trade toys.
+
+If you are a show owner, you can see how much profit you made from selling toys.
+
+Only show owners can make a profit. So if they buy their own toys it is free to them.
+
+No money will be exchanged on this site as it is only a demo site.
+
+Once done making changes, etc, a user can log out.
+
+If a logged in user no longer wishes to use the site, they can unsubscribe.
+
+If you are a show owner, you cannot unsubscribe unless your show is transfered to another user.
+
+# How To Do Something?
+
+For the items below: there are ways to back out/cancel items provided. You can also navigate away.
+
+To signup:
+1. you must first navigate to the home page and click signup,
+2. enter a username and password and the access level you want (1 or 2)
+3. click signup,
+4. you will be automatically logged in and see the home page which will tell you so.
+
+To login:
+1. you must first navigate to the home page and click login,
+2. enter your username and password,
+3. click submit
+4. you will be redirected to the home page which will tell you if you are logged in or not.
+
+To unsubscribe:
+1. you must first login,
+2. then click preferences,
+3. then click unsubscribe/remove my account.
+
+To edit a show or an episode or a toy:
+1. you must first login,
+2. then click on the page you want to edit and navigate to that item individually,
+3. turn on edit mode,
+4. make the changes,
+5. click submit/update to update the item and the server
+6. Don't forget to turn off edit mode. Logging out will turn off edit mode.
+
+To remove a show or an episode or a toy:
+1. you must first login,
+2. navigate to the item you want to remove, but you must be in list form.
+3. click remove.
+
+To unwatch an episode:
+1. you must first login,
+2. click my episodes,
+3. click unwatch next to the item you want to remove from your watch history.
+
+To sell/transfer owned toys:
+1. you must first login,
+2. click my toys,
+3. click throw out all of/show transfer form
+Assuming you clicked Show Transfer Form (otherwise stop at 3):
+4. Fill out the form entering the buyer's ID number and how many you want to give to the buyer.
+5. Click submit/transfer/sell it.
+
+To watch an episode:
+1. you must first login,
+2. navigate to the individual episode page
+
+Note: if you did step 2 before step 1, you watched it without it being recorded on the server
+
+To buy a toy:
+1. you must first login,
+2. navigate to the toy you want to buy on the list view,
+3. click buy and enter how many.
+4. click submit/buy.
+
+## Basic Component Design and Heirarchy:
+
+```
+App-------------------------------------------------------------------------------------------
+ |            |                     |                                    |           |       |
+Home Login/SignUp/Preferences EpisodeShowToy----------           NewEpisodeShowToy Navbar Logout
+                                    |                |
+                              TransferToyShowForm EpisodeShowToy
+```
+
+I want to call your attention to the EpisodeShowToy component. Notice it has ITSELF as a kid.
+
+It also means it has 2 or 3 levels (depending on how you count App component) which means it does not feel like prop drilling.
+
+
+## URLS The Server Responds To:
+
+| URL                                      | METHODS            | REQUIRED DATA
+| ---------------------------------------- |:------------------:|:--------------------------------
+| /signup                                  | POST               | Username, password, accesslevel
+| /login                                   | PATCH              | Username, password, id
+| /logout                                  | GET                | user-id
+| /preferences                             | GET, PATCH         | Username, password, id, accesslevel
+| /unsubscribe                             | DELETE             | user-id
+| /my-watchlist                            | GET, POST          | user-id, episode-id
+| /my-episodes                             | GET, POST          | user-id, episode-id
+| /my-watchlist/<int:id>                   | GET, PATCH, DELETE | user-id, episode-id*
+| /my-episodes/<int:id>                    | GET, PATCH, DELETE | user-id, episode-id*
+| /my-toys                                 | GET, POST          | user-id, toy-id, quantity
+| /my-toys/<int:id>                        | GET, PATCH, DELETE | user-id, toy-id*
+| /all-user-toy-data                       | GET                | NOTHING
+| /shows/<int:showid>/episodes             | GET, POST          | showid*, name, epnum, snnum, description
+| /shows/<int:showid>/episodes/<int:epnum> | GET, PATCH, DELETE | showid*, epnum*, name, snnum, description
+| /episodes_by_ID/<int:id>                 | GET, PATCH, DELETE | epid*, showid, epnum, name snnum, description
+| /shows                                   | GET, POST          | name, description
+| /shows/<int:id>                          | GET, PATCH, DELETE | id*, name, description
+| /toys                                    | GET, POST          | showid, name, price, description
+| /toys/<int:id>                           | GET, PATCH, DELETE | id*, name, price, description
+| /shows/<int:showid>/toys                 | GET, POST          | showid*, name, price, description
+| /shows/<int:showid>/toys/<int:toynum>    | GET, PATCH, DELETE | showid*, toynum*, name, price, description
+| /                                        | GET                | NOTHING
+
+NOTES:
+NOTHING means the server does not require any data to access this.
+The * on some things means this is required by the URL as a parameter and on the server
+That GET usually only requires an id unless you are getting all of something
+Getting all of something usually does not require anything.
+The DELETE usually only requires an id
+The REQUIRED DATA Column holds the maximum required data (usually needed for the PATCH)
+There are only 4/5 HTTP methods: GET (ONE ITEM BY ID, OR ALL ITEMS), POST, PATCH, DELETE
+
 # Phase 4 Full-Stack Application Project Template
 
 ## Learning Goals
